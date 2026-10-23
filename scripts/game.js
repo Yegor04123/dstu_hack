@@ -3,7 +3,7 @@ const gameState = {
     nickname: '',
     metrics: { kpi: 50, knowledge: 0, salary: 50, health: 100 },
     currentCall: 0,
-    totalCalls: 10, // УМЕНЬШЕНО ДО 10
+    totalCalls: 10,
     calls: [],
     knowledgeBase: [],
     shuffledCalls: [],
@@ -51,8 +51,8 @@ function loadFallbackData() {
             correctEffects: { kpi: 10, knowledge: 5, salary: 0, health: 0 },
             wrongEffects: { kpi: -15, knowledge: -10, salary: 0, health: -5 },
             answers: [
-                { text: 'Зайдите в Настройки → Экран → Размер шрифта.', isCorrect: true, clientSatisfaction: 5, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
-                { text: 'Разведите пальцы на экране.', isCorrect: false, clientSatisfaction: 2, effects: { kpi: -5, knowledge: 0, salary: 0, health: 0 } }
+                { text: 'Зайдите в Настройки → Экран → Размер шрифта.', isCorrect: true, clientRating: 5, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
+                { text: 'Разведите пальцы на экране.', isCorrect: false, clientRating: 2, effects: { kpi: -5, knowledge: 0, salary: 0, health: 0 } }
             ]
         }
     ];
@@ -210,19 +210,21 @@ function handleTimeout() {
     const call = gameState.shuffledCalls[gameState.currentCall];
     if (!call) return;
     
-    const answer = { text: 'Не ответил вовремя', isCorrect: false, clientSatisfaction: 1, effects: call.wrongEffects };
+    const answer = { text: 'Не ответил вовремя', isCorrect: false, clientRating: 1, effects: call.wrongEffects };
     applyEffects(answer.effects);
     
     gameState.stats.totalCalls++;
     gameState.stats.wrongAnswers++;
     gameState.stats.ratings.push(1);
     
-    showClientRatingInChat(call, answer, 1);
+    showOperatorMessage(answer.text, () => {
+        showClientResponse(call, 1, () => {
+            showClientRatingInChat(call, answer, 1);
+        });
+    });
 }
 
 function checkEndings() {
-    if (gameState.currentCall < gameState.totalCalls && gameState.currentCall < gameState.shuffledCalls.length) return false;
-    
     const avgRating = gameState.stats.ratings.length > 0 
         ? gameState.stats.ratings.reduce((a, b) => a + b, 0) / gameState.stats.ratings.length 
         : 0;
@@ -371,7 +373,6 @@ function showMessage(call, callback) {
     }, 500);
 }
 
-// НОВОЕ: Показать ответ оператора в чате
 function showOperatorMessage(text, callback) {
     const chatMessages = document.getElementById('chat-messages');
     const now = new Date();
@@ -394,7 +395,6 @@ function showOperatorMessage(text, callback) {
     }
 }
 
-// НОВОЕ: Показать ответ клиента после оператора
 function showClientResponse(call, rating, callback) {
     const chatMessages = document.getElementById('chat-messages');
     const now = new Date();
@@ -419,7 +419,6 @@ function showClientResponse(call, rating, callback) {
     }
 }
 
-// НОВОЕ: Показать оценку в чате
 function showClientRatingInChat(call, answer, rating) {
     const chatMessages = document.getElementById('chat-messages');
     
@@ -435,7 +434,6 @@ function showClientRatingInChat(call, answer, rating) {
     chatMessages.appendChild(ratingEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
-    // Переход к следующему сообщению через 3 секунды
     setTimeout(() => {
         nextCall();
     }, 3000);
@@ -472,10 +470,10 @@ function generateAIComment(call) {
     const bestArticle = articlesWithRelevance[0];
     
     const commentTemplates = {
-        grandma: ["Похоже, нужна тёплая инструкция. Бабушки любят пошаговые объяснения "],
-        angry: ["Клиент на взводе! Сначала извинись, потом решай "],
-        business: ["Деловой клиент — цени время. Коротко, по делу "],
-        vip: ["VIP-клиент! Обращайся по имени-отчеству "],
+        grandma: ["Похоже, нужна тёплая инструкция. Бабушки любят пошаговые объяснения 👵"],
+        angry: ["Клиент на взводе! Сначала извинись, потом решай 🧯"],
+        business: ["Деловой клиент — цени время. Коротко, по делу 💼"],
+        vip: ["VIP-клиент! Обращайся по имени-отчеству 👑"],
         student: ["Студент — можно попроще, но не панибратски 🎓"]
     };
     
@@ -491,7 +489,7 @@ function generateAIComment(call) {
         const answers = gameState.ai.learnedAnswers[call.id];
         const bestAnswer = Object.entries(answers).sort((a, b) => b[1] - a[1])[0];
         if (bestAnswer && bestAnswer[1] >= 2) {
-            comment += `<br><br>🎓 <em>Ты уже решал такое. Нажми " Подсказка ИИ"!</em>`;
+            comment += `<br><br>🎓 <em>Ты уже решал такое. Нажми "💡 Подсказка ИИ"!</em>`;
         }
     }
     
@@ -584,36 +582,25 @@ function hideAIPopup() {
 function handleAnswer(call, answer) {
     clearInterval(gameState.timerInterval);
     
-    // Скрываем варианты ответов
     document.getElementById('answers-section').style.display = 'none';
     
-    // 1. Показываем ответ оператора в чате
+    const rating = answer.clientRating || 3;
+    
     showOperatorMessage(answer.text, () => {
-        // 2. Применяем эффекты (KPI, знания и т.д.)
         applyEffects(answer.effects);
         
-        // 3. Обновляем статистику
         gameState.stats.totalCalls++;
         if (answer.isCorrect) gameState.stats.correctAnswers++;
         else gameState.stats.wrongAnswers++;
         
-        // 4. Генерируем оценку на основе clientSatisfaction
-        const rating = answer.clientSatisfaction || 3;
         gameState.stats.ratings.push(rating);
         
-        // 5. Обучаем ИИ
         trainAI(call, answer);
         
-        // 6. Показываем ответ клиента
         showClientResponse(call, rating, () => {
-            // 7. Показываем оценку в чате
             showClientRatingInChat(call, answer, rating);
         });
     });
-}
-
-function generateClientRating(call, answer) {
-    return answer.clientSatisfaction || 3;
 }
 
 function getClientReaction(call, rating) {
@@ -626,14 +613,14 @@ function getClientReaction(call, rating) {
             1: '😢 "Ой, горе мне... Я совсем запуталась."'
         },
         angry: {
-            5: '😐 "Хм... Ладно, признаю, нормально сделали."',
+            5: ' "Хм... Ладно, признаю, нормально сделали."',
             4: '😤 "Ну наконец-то! Почему сразу так не сделали?!"',
             3: '😡 "Это что за ответ?! Я не это спрашивал!"',
             2: '🤬 "Вы издеваетесь?! Я требую менеджера!"',
             1: '💢 "ВСЁ! Я ЗВОНЮ В ПРОКУРАТУРУ!"'
         },
         business: {
-            5: ' "Отлично. Именно такой сервис мы и ожидаем."',
+            5: '👔 "Отлично. Именно такой сервис мы и ожидаем."',
             4: '💼 "Приемлемо. Но в следующий раз будьте оперативнее."',
             3: '😐 "Средне. Я ожидаю большего."',
             2: '😠 "Это неприемлемо. Пересмотрим условия."',
@@ -682,14 +669,9 @@ function generateRatingDetails(call, answer, rating) {
     if (answer.isCorrect) {
         pros.push('Решение проблемы клиента');
         if (gameState.timeLeft > 240) pros.push('Быстрый ответ');
-        if (answer.text.includes(call.clientName.split(' ')[0])) pros.push('Персональное обращение');
     } else {
         cons.push('Неверное решение проблемы');
-        if (gameState.timeLeft < 60) cons.push('Слишком долгий ответ');
     }
-    
-    if (call.clientType === 'angry' && rating >= 4) pros.push('Смог успокоить клиента');
-    else if (call.clientType === 'angry' && rating <= 2) cons.push('Не справился с негативом');
     
     const adviceTemplates = {
         5: 'Превосходная работа!',
@@ -782,7 +764,7 @@ function handleCustomAnswer(call) {
     const answer = {
         text: customText,
         isCorrect: isCorrect,
-        clientSatisfaction: isCorrect ? 4 : 2,
+        clientRating: isCorrect ? 4 : 2,
         effects: isCorrect ? call.correctEffects : call.wrongEffects
     };
     
@@ -813,7 +795,7 @@ function displayKBResults(call) {
     articlesWithRelevance.sort((a, b) => b.relevance - a.relevance);
     const topArticles = articlesWithRelevance.slice(0, 5).filter(a => a.relevance > 0);
     
-    resultsDiv.innerHTML = '<div class="kb-warning">️ При использовании ответа таймер уменьшится на 30 секунд.</div>';
+    resultsDiv.innerHTML = '<div class="kb-warning">⚠️ При использовании ответа таймер уменьшится на 30 секунд.</div>';
     
     if (topArticles.length === 0) {
         resultsDiv.innerHTML += '<p style="text-align:center;color:#999;padding:20px;">🔍 Ничего не найдено.</p>';
@@ -883,7 +865,7 @@ function applyTimePenalty(seconds) {
 function showTimePenaltyNotification(seconds) {
     const notification = document.createElement('div');
     notification.className = 'time-penalty-notification';
-    notification.innerHTML = `️ Поиск в базе: <strong>-${seconds} сек</strong>`;
+    notification.innerHTML = `⏱️ Поиск в базе: <strong>-${seconds} сек</strong>`;
     document.body.appendChild(notification);
     setTimeout(() => notification.remove(), 2500);
 }
@@ -942,17 +924,13 @@ function startGame() {
 
 function endShiftEarly() {
     if (confirm('Вы уверены, что хотите завершить смену досрочно?')) {
-        const ending = {
-            title: '⏹️ Смена завершена досрочно',
-            text: `Вы завершили смену после ${gameState.currentCall} сообщений. Средняя оценка: ${gameState.stats.ratings.length > 0 ? (gameState.stats.ratings.reduce((a, b) => a + b, 0) / gameState.stats.ratings.length).toFixed(1) : '0.0'}/5`
-        };
-        showEnding(ending);
+        checkEndings();
     }
 }
 
 function generateExtraCalls() {
     const templates = [
-        { avatar: '👵', clientName: 'Галина Морозова', clientStatus: 'Пенсионер', clientType: 'grandma', text: 'Как отправить фото по вотсапу?' },
+        { avatar: '', clientName: 'Галина Морозова', clientStatus: 'Пенсионер', clientType: 'grandma', text: 'Как отправить фото по вотсапу?' },
         { avatar: '', clientName: 'Андрей Волков', clientStatus: 'Постоянный клиент', clientType: 'angry', text: 'Почему списали деньги дважды?!' },
         { avatar: '🧑‍💼', clientName: 'Дмитрий Соколов', clientStatus: 'Директор ООО', clientType: 'business', text: 'Нужно подключить 50 сотрудников.' },
         { avatar: '👑', clientName: 'Елена Романова', clientStatus: 'VIP', clientType: 'vip', text: 'Почему лагает видео?' },
@@ -966,8 +944,8 @@ function generateExtraCalls() {
         correctEffects: { kpi: 10, knowledge: 5, salary: 0, health: 0 },
         wrongEffects: { kpi: -10, knowledge: -5, salary: 0, health: -5 },
         answers: [
-            { text: 'Сейчас помогу. Уточните детали.', isCorrect: true, clientSatisfaction: 4, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
-            { text: 'Это не моя компетенция.', isCorrect: false, clientSatisfaction: 1, effects: { kpi: -10, knowledge: -5, salary: 0, health: -5 } }
+            { text: 'Сейчас помогу. Уточните детали.', isCorrect: true, clientRating: 4, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
+            { text: 'Это не моя компетенция.', isCorrect: false, clientRating: 1, effects: { kpi: -10, knowledge: -5, salary: 0, health: -5 } }
         ]
     }));
 }
@@ -1018,9 +996,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (transferBtn) {
         transferBtn.addEventListener('click', () => {
-            clearInterval(gameState.timerInterval);
-            const answer = { text: 'Передал старшему', isCorrect: false, clientSatisfaction: 2, effects: { kpi: -10, knowledge: 0, salary: -5, health: 5 } };
-            handleAnswer(gameState.shuffledCalls[gameState.currentCall], answer);
+            const call = gameState.shuffledCalls[gameState.currentCall];
+            if (!call) return;
+            const answer = { text: 'Передал старшему', isCorrect: false, clientRating: 2, effects: { kpi: -10, knowledge: 0, salary: -5, health: 5 } };
+            handleAnswer(call, answer);
         });
     }
     
