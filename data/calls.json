@@ -1,0 +1,342 @@
+[
+  {
+    "id": 1,
+    "avatar": "👵",
+    "clientName": "Зинаида Петровна Морозова",
+    "clientStatus": "Пенсионер, клиент с 2012 года",
+    "clientInfo": "Тариф: 'Пенсионный+', стаж: 12 лет",
+    "clientType": "grandma",
+    "text": "Доченька, здравствуй. У меня тут телефон... шрифт совсем маленький стал, я ничего не вижу. Как его побольше сделать-то?",
+    "correctAnswer": "Настройки Экран Размер шрифта",
+    "correctEffects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0},
+    "wrongEffects": {"kpi": -15, "knowledge": -10, "salary": 0, "health": -5},
+    "answers": [
+      {"text": "Здравствуйте, Зинаида Петровна! Конечно, помогу. Откройте Настройки — это такая шестерёнка на главном экране. Найдите пункт 'Экран', а там 'Размер шрифта'. Потяните ползунок вправо.", "isCorrect": true, "effects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0}},
+      {"text": "Просто разведите пальцы на экране, как будто фотографию увеличиваете.", "isCorrect": false, "effects": {"kpi": -5, "knowledge": 0, "salary": 0, "health": 0}},
+      {"text": "Вам нужно купить новый телефон с большим экраном. Этот уже не подходит.", "isCorrect": false, "effects": {"kpi": -20, "knowledge": -10, "salary": -10, "health": -5}}
+    ]
+  },
+  {
+    "id": 2,
+    "avatar": "😡",
+    "clientName": "Виктор Сергеевич Сидоров",
+    "clientStatus": "Постоянный клиент, жалоба #3 за месяц",
+    "clientInfo": "Тариф: 'Домашний 500 Мбит', стаж: 5 лет",
+    "clientType": "angry",
+    "text": "СЛУШАЙТЕ! У меня уже два часа интернет не работает! Я за него деньги плачу каждый месяц, а вы... Вы вообще работаете там?! Решайте проблему НЕМЕДЛЕННО!",
+    "correctAnswer": "Перезагрузите роутер проверьте статус линии",
+    "correctEffects": {"kpi": 15, "knowledge": 10, "salary": 5, "health": -5},
+    "wrongEffects": {"kpi": -20, "knowledge": -10, "salary": -10, "health": -10},
+    "answers": [
+      {"text": "Виктор Сергеевич, понимаю ваше возмущение. Пожалуйста, перезагрузите роутер — выключите его из розетки на 30 секунд. Параллельно я проверю статус вашей линии.", "isCorrect": true, "effects": {"kpi": 15, "knowledge": 10, "salary": 5, "health": -5}},
+      {"text": "Сейчас разберёмся. Подскажите, какие индикаторы горят на роутере?", "isCorrect": true, "effects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0}},
+      {"text": "Это ваши проблемы. Читайте инструкцию к роутеру.", "isCorrect": false, "effects": {"kpi": -30, "knowledge": -15, "salary": -20, "health": -15}}
+    ]
+  },
+  {
+    "id": 3,
+    "avatar": "🧑‍💼",
+    "clientName": "Дмитрий Александрович Соколов",
+    "clientStatus": "Директор ООО 'ТехноПром'",
+    "clientInfo": "Корпоративный тариф 'Бизнес-50', 127 сотрудников",
+    "clientType": "business",
+    "text": "Добрый день. У нас корпоративный тариф 'Бизнес-50'. Нужно срочно подключить 50 новых сотрудников до понедельника. Сможете организовать?",
+    "correctAnswer": "Перевести на корпоративный отдел",
+    "correctEffects": {"kpi": 20, "knowledge": 15, "salary": 15, "health": -5},
+    "wrongEffects": {"kpi": -25, "knowledge": -15, "salary": -20, "health": -10},
+    "answers": [
+      {"text": "Добрый день, Дмитрий Александрович! Для корпоративных подключений такого объёма у нас есть специализированный отдел. Сейчас переведу вас на старшего менеджера.", "isCorrect": true, "effects": {"kpi": 20, "knowledge": 15, "salary": 15, "health": -5}},
+      {"text": "Попробую оформить заявку сам. Но 50 подключений — это нетипичный объём.", "isCorrect": false, "effects": {"kpi": -10, "knowledge": -5, "salary": -5, "health": -10}},
+      {"text": "50 сотрудников за выходные? Это технически невозможно.", "isCorrect": false, "effects": {"kpi": -30, "knowledge": -20, "salary": -25, "health": -10}}
+    ]
+  },
+  {
+    "id": 4,
+    "avatar": "👑",
+    "clientName": "Елена Викторовна Романова",
+    "clientStatus": "VIP-клиент с 2015 года",
+    "clientInfo": "Тариф: 'Премиум', сеть магазинов 'Романова'",
+    "clientType": "vip",
+    "text": "Здравствуйте. Я директор сети магазинов. У меня на тарифе 'Премиум' видео в YouTube тормозит. Разберитесь немедленно, у меня на завтра важная видеоконференция.",
+    "correctAnswer": "Проверить скорость интернета перезагрузить роутер приоритет",
+    "correctEffects": {"kpi": 25, "knowledge": 10, "salary": 20, "health": -5},
+    "wrongEffects": {"kpi": -30, "knowledge": -10, "salary": -25, "health": -15},
+    "answers": [
+      {"text": "Здравствуйте, Елена Викторовна! Приношу извинения. Сейчас в приоритетном порядке проведу диагностику. Пожалуйста, перезагрузите роутер. За задержку начислю компенсацию.", "isCorrect": true, "effects": {"kpi": 25, "knowledge": 10, "salary": 20, "health": -5}},
+      {"text": "Возможно, проблема на стороне вашего оборудования.", "isCorrect": false, "effects": {"kpi": -35, "knowledge": -15, "salary": -30, "health": -15}},
+      {"text": "Для стабильного видео рекомендуем перейти на более дорогой тариф.", "isCorrect": false, "effects": {"kpi": -20, "knowledge": -10, "salary": -15, "health": -10}}
+    ]
+  },
+  {
+    "id": 5,
+    "avatar": "🤷",
+    "clientName": "Максим Игоревич Лебедев",
+    "clientStatus": "Студент МГТУ, новый клиент",
+    "clientInfo": "Тариф: 'Студенческий', подключен 2 месяца назад",
+    "clientType": "student",
+    "text": "Привет. Слушай, а можно как-то пароль от вай-фая соседа узнать? А то мне за неуплату отключили, а у меня курсовая горит 😅",
+    "correctAnswer": "Отказать это нарушение",
+    "correctEffects": {"kpi": 5, "knowledge": 5, "salary": 0, "health": 0},
+    "wrongEffects": {"kpi": -30, "knowledge": -10, "salary": -15, "health": -5},
+    "answers": [
+      {"text": "Привет, Максим! Понимаю ситуацию, но пароль от чужой сети я дать не могу — это нарушение. Зато могу помочь восстановить твой тариф: есть рассрочка платежа.", "isCorrect": true, "effects": {"kpi": 5, "knowledge": 5, "salary": 0, "health": 0}},
+      {"text": "Хм, давай посмотрю... Нет, к сожалению, не могу.", "isCorrect": false, "effects": {"kpi": -25, "knowledge": -10, "salary": -10, "health": -5}},
+      {"text": "Держи, пароль: 12345678. Только никому не говори.", "isCorrect": false, "effects": {"kpi": -40, "knowledge": -20, "salary": -30, "health": -10}}
+    ]
+  },
+  {
+    "id": 6,
+    "avatar": "😡",
+    "clientName": "Андрей Николаевич Волков",
+    "clientStatus": "Постоянный клиент, жалоба #5",
+    "clientInfo": "Тариф: 'Домашний 300 Мбит', стаж: 7 лет",
+    "clientType": "angry",
+    "text": "Я ВЧЕРА УЖЕ ЗВОНИЛ! Мне обещали, что всё решат! А ВОТ ФИГ ВАМ — ничего не изменилось!",
+    "correctAnswer": "Извиниться проверить историю эскалация",
+    "correctEffects": {"kpi": 20, "knowledge": 15, "salary": 5, "health": -10},
+    "wrongEffects": {"kpi": -30, "knowledge": -15, "salary": -15, "health": -15},
+    "answers": [
+      {"text": "Андрей Николаевич, приношу искренние извинения. Сейчас подниму историю обращения и переведу на старшего специалиста, который лично проконтролирует решение.", "isCorrect": true, "effects": {"kpi": 20, "knowledge": 15, "salary": 5, "health": -10}},
+      {"text": "Возможно, вы не выполнили рекомендации прошлого оператора.", "isCorrect": false, "effects": {"kpi": -35, "knowledge": -20, "salary": -20, "health": -15}},
+      {"text": "Подождите, сейчас посмотрю в системе...", "isCorrect": false, "effects": {"kpi": -10, "knowledge": -5, "salary": 0, "health": -5}}
+    ]
+  },
+  {
+    "id": 7,
+    "avatar": "🧑‍💼",
+    "clientName": "Ольга Владимировна Кузнецова",
+    "clientStatus": "Финансовый директор 'Инвест-Групп'",
+    "clientInfo": "Корпоративный тариф 'Премиум Бизнес'",
+    "clientType": "business",
+    "text": "Срочно! Через час у нас презентация для инвесторов, а интернет лёг. Это критично — от этого зависит раунд инвестиций на $2 миллиона.",
+    "correctAnswer": "Приоритетная проверка резервный канал компенсация",
+    "correctEffects": {"kpi": 25, "knowledge": 15, "salary": 20, "health": -10},
+    "wrongEffects": {"kpi": -35, "knowledge": -20, "salary": -30, "health": -20},
+    "answers": [
+      {"text": "Ольга Владимировна, понимаю критичность. Сейчас в приоритетном порядке диагностирую линию. Предлагаю временное решение — резервный канал через мобильный роутер. За неудобства — компенсация.", "isCorrect": true, "effects": {"kpi": 25, "knowledge": 15, "salary": 20, "health": -10}},
+      {"text": "Попробуйте перезагрузить роутер.", "isCorrect": false, "effects": {"kpi": -20, "knowledge": -10, "salary": -10, "health": -10}},
+      {"text": "К сожалению, не можем гарантировать восстановление в такие сроки.", "isCorrect": false, "effects": {"kpi": -40, "knowledge": -25, "salary": -35, "health": -20}}
+    ]
+  },
+  {
+    "id": 8,
+    "avatar": "👵",
+    "clientName": "Тамара Ивановна Смирнова",
+    "clientStatus": "Пенсионер, клиент с 2008 года",
+    "clientInfo": "Тариф: 'Пенсионный+', стаж: 16 лет",
+    "clientType": "grandma",
+    "text": "Доченька, мне тут смс пришло — пишут, что я выиграла миллион рублей! Говорят, надо перейти по ссылке и ввести данные карты. Как получить-то?",
+    "correctAnswer": "Предупредить о мошенничестве",
+    "correctEffects": {"kpi": 15, "knowledge": 10, "salary": 0, "health": 0},
+    "wrongEffects": {"kpi": -40, "knowledge": -15, "salary": -20, "health": -10},
+    "answers": [
+      {"text": "Тамара Ивановна, стоп! Это мошенники! Ни в коем случае не переходите по ссылке и не вводите данные карты. Сейчас помогу заблокировать номер.", "isCorrect": true, "effects": {"kpi": 15, "knowledge": 10, "salary": 0, "health": 0}},
+      {"text": "Перейдите по ссылке и введите данные — и деньги будут ваши!", "isCorrect": false, "effects": {"kpi": -50, "knowledge": -25, "salary": -40, "health": -20}},
+      {"text": "Не знаю, позвоните по номеру из смс.", "isCorrect": false, "effects": {"kpi": -45, "knowledge": -20, "salary": -30, "health": -15}}
+    ]
+  },
+  {
+    "id": 9,
+    "avatar": "😡",
+    "clientName": "Сергей Анатольевич Козлов",
+    "clientStatus": "Постоянный клиент",
+    "clientInfo": "Тариф: 'Домашний 500 Мбит', стаж: 3 года",
+    "clientType": "angry",
+    "text": "ВАШ РОУТЕР СЛОМАЛСЯ ИЗ-ЗА ГРОЗЫ! Я ЗА НЕГО ДЕНЬГИ ПЛАТИЛ! ТРЕБУЮ КОМПЕНСАЦИЮ!",
+    "correctAnswer": "Не гарантийный случай замена со скидкой",
+    "correctEffects": {"kpi": 10, "knowledge": 10, "salary": -10, "health": -5},
+    "wrongEffects": {"kpi": -20, "knowledge": -10, "salary": -20, "health": -10},
+    "answers": [
+      {"text": "Сергей Анатольевич, понимаю ваше разочарование. К сожалению, повреждение из-за грозы не гарантийный случай. Но могу предложить замену со скидкой 50%.", "isCorrect": true, "effects": {"kpi": 10, "knowledge": 10, "salary": -10, "health": -5}},
+      {"text": "Это ваша вина — надо было выключать технику из розетки.", "isCorrect": false, "effects": {"kpi": -35, "knowledge": -20, "salary": -25, "health": -15}},
+      {"text": "Отправим вам новый роутер бесплатно.", "isCorrect": false, "effects": {"kpi": -15, "knowledge": 0, "salary": -40, "health": 0}}
+    ]
+  },
+  {
+    "id": 10,
+    "avatar": "👑",
+    "clientName": "Артём Дмитриевич Новиков",
+    "clientStatus": "Блогер, 1.2 млн подписчиков",
+    "clientInfo": "VIP-клиент, тариф 'Премиум+'",
+    "clientType": "vip",
+    "text": "Я блогер с миллионом подписчиков. Если не решите проблему за 30 секунд, я сниму про вас видео. Время пошло.",
+    "correctAnswer": "Приоритетное решение бонус эскалация",
+    "correctEffects": {"kpi": 30, "knowledge": 20, "salary": 20, "health": -15},
+    "wrongEffects": {"kpi": -40, "knowledge": -20, "salary": -30, "health": -20},
+    "answers": [
+      {"text": "Артём Дмитриевич, понимаю вашу позицию. Проблема будет решена в приоритетном порядке в течение 2 минут. В качестве извинений — месяц обслуживания за наш счёт.", "isCorrect": true, "effects": {"kpi": 30, "knowledge": 20, "salary": 20, "health": -15}},
+      {"text": "Угрозы не помогут. Решайте сами.", "isCorrect": false, "effects": {"kpi": -50, "knowledge": -30, "salary": -40, "health": -25}},
+      {"text": "Снимайте, нам всё равно.", "isCorrect": false, "effects": {"kpi": -60, "knowledge": -35, "salary": -50, "health": -30}}
+    ]
+  },
+  {
+    "id": 11,
+    "avatar": "👵",
+    "clientName": "Нина Фёдоровна Белова",
+    "clientStatus": "Пенсионер, клиент с 2015 года",
+    "clientInfo": "Тариф: 'Пенсионный+', стаж: 9 лет",
+    "clientType": "grandma",
+    "text": "Доченька, а как мне фото по вотсапу отправить? Внучке в другой город хочу послать.",
+    "correctAnswer": "WhatsApp скрепка галерея",
+    "correctEffects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0},
+    "wrongEffects": {"kpi": -10, "knowledge": -5, "salary": 0, "health": 0},
+    "answers": [
+      {"text": "Нина Фёдоровна, откройте WhatsApp, выберите контакт внучки. Внизу будет значок скрепки — нажмите на него, выберите 'Галерея', найдите фото и отправьте.", "isCorrect": true, "effects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0}},
+      {"text": "Просто нажмите на фото и отправьте.", "isCorrect": false, "effects": {"kpi": -5, "knowledge": 0, "salary": 0, "health": 0}},
+      {"text": "Это сложно, вызовите мастера на дом.", "isCorrect": false, "effects": {"kpi": -15, "knowledge": -10, "salary": -5, "health": -5}}
+    ]
+  },
+  {
+    "id": 12,
+    "avatar": "😡",
+    "clientName": "Игорь Валерьевич Павлов",
+    "clientStatus": "Постоянный клиент",
+    "clientInfo": "Тариф: 'Домашний 300 Мбит', стаж: 4 года",
+    "clientType": "angry",
+    "text": "ПОЧЕМУ ВЫ СПИСАЛИ С МЕНЯ ДЕНЬГИ ДВАЖДЫ?! ВЕРНИТЕ НЕМЕДЛЕННО!",
+    "correctAnswer": "Проверить историю платежей оформить возврат",
+    "correctEffects": {"kpi": 15, "knowledge": 10, "salary": -15, "health": -10},
+    "wrongEffects": {"kpi": -25, "knowledge": -10, "salary": -25, "health": -15},
+    "answers": [
+      {"text": "Игорь Валерьевич, приношу извинения. Сейчас проверю историю платежей. Если действительно двойное списание — оформлю возврат в течение 3 рабочих дней.", "isCorrect": true, "effects": {"kpi": 15, "knowledge": 10, "salary": -15, "health": -10}},
+      {"text": "Мы ничего не списали. Это ваша проблема.", "isCorrect": false, "effects": {"kpi": -40, "knowledge": -25, "salary": -30, "health": -20}},
+      {"text": "Вернём, когда-нибудь.", "isCorrect": false, "effects": {"kpi": -30, "knowledge": -15, "salary": -20, "health": -15}}
+    ]
+  },
+  {
+    "id": 13,
+    "avatar": "🧑‍💼",
+    "clientName": "Михаил Юрьевич Громов",
+    "clientStatus": "Представительство в Германии",
+    "clientInfo": "Корпоративный тариф 'Международный Бизнес'",
+    "clientType": "business",
+    "text": "Меня плохо слышно, я из-за границы. У нас проблемы с международным роумингом.",
+    "correctAnswer": "Говорить медленно предложить чат",
+    "correctEffects": {"kpi": 15, "knowledge": 5, "salary": 5, "health": 0},
+    "wrongEffects": {"kpi": -15, "knowledge": -5, "salary": -5, "health": -5},
+    "answers": [
+      {"text": "Михаил Юрьевич, я буду говорить медленнее. Если плохо слышно — можем продолжить в чате. Повторите, пожалуйста, ваш вопрос.", "isCorrect": true, "effects": {"kpi": 15, "knowledge": 5, "salary": 5, "health": 0}},
+      {"text": "Говорите громче, я не слышу.", "isCorrect": false, "effects": {"kpi": -10, "knowledge": -5, "salary": 0, "health": -5}},
+      {"text": "Я не работаю с иностранными клиентами. До свидания.", "isCorrect": false, "effects": {"kpi": -25, "knowledge": -15, "salary": -15, "health": -10}}
+    ]
+  },
+  {
+    "id": 14,
+    "avatar": "👑",
+    "clientName": "Анастасия Сергеевна Орлова",
+    "clientStatus": "VIP-клиент с 2018 года",
+    "clientInfo": "Тариф: 'Премиум', владелица сети салонов",
+    "clientType": "vip",
+    "text": "Я хочу отменить все ваши услуги. Надоело. Ваш сервис — полное разочарование.",
+    "correctAnswer": "Узнать причину предложить скидку",
+    "correctEffects": {"kpi": 20, "knowledge": 10, "salary": 15, "health": -5},
+    "wrongEffects": {"kpi": -15, "knowledge": -10, "salary": -10, "health": -5},
+    "answers": [
+      {"text": "Анастасия Сергеевна, мне жаль это слышать. Могу узнать причину? Возможно, я смогу предложить вам скидку 30% на 3 месяца.", "isCorrect": true, "effects": {"kpi": 20, "knowledge": 10, "salary": 15, "health": -5}},
+      {"text": "Хорошо, отменяю все услуги.", "isCorrect": false, "effects": {"kpi": -25, "knowledge": -15, "salary": -30, "health": 0}},
+      {"text": "Вы не можете просто так отменить. Читайте договор.", "isCorrect": false, "effects": {"kpi": -30, "knowledge": -20, "salary": -20, "health": -10}}
+    ]
+  },
+  {
+    "id": 15,
+    "avatar": "🤷",
+    "clientName": "Кирилл Андреевич Соловьёв",
+    "clientStatus": "Школьник, 11 класс",
+    "clientInfo": "Тариф: 'Школьный', подключен 6 месяцев назад",
+    "clientType": "student",
+    "text": "У меня эта штука... ну, которая мигает... не работает. Чё делать?",
+    "correctAnswer": "Уточнить модель наводящие вопросы",
+    "correctEffects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0},
+    "wrongEffects": {"kpi": -10, "knowledge": -5, "salary": 0, "health": 0},
+    "answers": [
+      {"text": "Кирилл, расскажи подробнее: что именно мигает? Какие лампочки горят? Что написано на устройстве?", "isCorrect": true, "effects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0}},
+      {"text": "Перезагрузите всё и попробуйте снова.", "isCorrect": false, "effects": {"kpi": -5, "knowledge": 0, "salary": 0, "health": 0}},
+      {"text": "Не понимаю, о чём вы. До свидания.", "isCorrect": false, "effects": {"kpi": -20, "knowledge": -10, "salary": -5, "health": -5}}
+    ]
+  },
+  {
+    "id": 16,
+    "avatar": "👵",
+    "clientName": "Валентина Михайловна Жукова",
+    "clientStatus": "Пенсионер, клиент с 2011 года",
+    "clientInfo": "Тариф: 'Пенсионный+', стаж: 13 лет",
+    "clientType": "grandma",
+    "text": "А вы можете просто поболтать? Мне одиноко, дети редко звонят...",
+    "correctAnswer": "Вежливо отказаться социальные службы",
+    "correctEffects": {"kpi": 5, "knowledge": 0, "salary": 0, "health": -5},
+    "wrongEffects": {"kpi": -20, "knowledge": 0, "salary": -5, "health": 0},
+    "answers": [
+      {"text": "Валентина Михайловна, мне жаль это слышать. К сожалению, у меня другие звонки. Могу порекомендовать социальные службы поддержки — там с радостью пообщаются.", "isCorrect": true, "effects": {"kpi": 5, "knowledge": 0, "salary": 0, "health": -5}},
+      {"text": "Да, давайте поболтаем. Как ваш день?", "isCorrect": false, "effects": {"kpi": -30, "knowledge": 0, "salary": -15, "health": 5}},
+      {"text": "Это не линия для разговоров. До свидания.", "isCorrect": false, "effects": {"kpi": -15, "knowledge": 0, "salary": 0, "health": -10}}
+    ]
+  },
+  {
+    "id": 17,
+    "avatar": "😡",
+    "clientName": "Роман Олегович Титов",
+    "clientStatus": "Постоянный клиент, юрист",
+    "clientInfo": "Тариф: 'Домашний 500 Мбит', стаж: 6 лет",
+    "clientType": "angry",
+    "text": "Я ПОДАМ НА ВАС В СУД! ВЫ НАРУШИЛИ МОИ ПРАВА!",
+    "correctAnswer": "Перевести на юридический отдел",
+    "correctEffects": {"kpi": 5, "knowledge": 5, "salary": 0, "health": -10},
+    "wrongEffects": {"kpi": -25, "knowledge": -10, "salary": -15, "health": -15},
+    "answers": [
+      {"text": "Роман Олегович, понимаю ваше недовольство. Для решения юридических вопросов переведу вас на наш юридический отдел.", "isCorrect": true, "effects": {"kpi": 5, "knowledge": 5, "salary": 0, "health": -10}},
+      {"text": "Подавайте, мы не боимся.", "isCorrect": false, "effects": {"kpi": -40, "knowledge": -25, "salary": -30, "health": -20}},
+      {"text": "Вы не правы, мы ничего не нарушали.", "isCorrect": false, "effects": {"kpi": -30, "knowledge": -15, "salary": -20, "health": -15}}
+    ]
+  },
+  {
+    "id": 18,
+    "avatar": "🤷",
+    "clientName": "Даниил Романович Фролов",
+    "clientStatus": "Студент IT-вуза, junior-разработчик",
+    "clientInfo": "Тариф: 'Студенческий Pro', стаж: 1 год",
+    "clientType": "student",
+    "text": "Я сам программист. Покажите мне API вашего личного кабинета.",
+    "correctAnswer": "API закрыто только для партнёров",
+    "correctEffects": {"kpi": 5, "knowledge": 5, "salary": 0, "health": 0},
+    "wrongEffects": {"kpi": -10, "knowledge": -5, "salary": 0, "health": 0},
+    "answers": [
+      {"text": "Даниил, к сожалению, API личного кабинета закрыто для публичного доступа. Документация доступна только для партнёров.", "isCorrect": true, "effects": {"kpi": 5, "knowledge": 5, "salary": 0, "health": 0}},
+      {"text": "Вот документация: api.example.com/docs", "isCorrect": false, "effects": {"kpi": -20, "knowledge": -15, "salary": -10, "health": -5}},
+      {"text": "Не знаю, спросите у разработчиков.", "isCorrect": false, "effects": {"kpi": -5, "knowledge": 0, "salary": 0, "health": 0}}
+    ]
+  },
+  {
+    "id": 19,
+    "avatar": "👵",
+    "clientName": "Людмила Александровна Комарова",
+    "clientStatus": "Пенсионер, клиент с 2014 года",
+    "clientInfo": "Тариф: 'Пенсионный+', стаж: 10 лет",
+    "clientType": "grandma",
+    "text": "Доченька, а как мне через приложение оплатить интернет? Не хочу в очередь стоять.",
+    "correctAnswer": "Приложение оплата карта",
+    "correctEffects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0},
+    "wrongEffects": {"kpi": -10, "knowledge": -5, "salary": 0, "health": 0},
+    "answers": [
+      {"text": "Людмила Александровна, откройте наше приложение, нажмите 'Оплатить', введите номер лицевого счёта и данные карты. Всё просто!", "isCorrect": true, "effects": {"kpi": 10, "knowledge": 5, "salary": 0, "health": 0}},
+      {"text": "Это сложно, приходите в офис.", "isCorrect": false, "effects": {"kpi": -15, "knowledge": -10, "salary": -5, "health": -5}},
+      {"text": "Не знаю, разберётесь сами.", "isCorrect": false, "effects": {"kpi": -20, "knowledge": -10, "salary": 0, "health": -5}}
+    ]
+  },
+  {
+    "id": 20,
+    "avatar": "😡",
+    "clientName": "Павел Викторович Егоров",
+    "clientStatus": "Постоянный клиент, предприниматель",
+    "clientInfo": "Тариф: 'Бизнес Старт', стаж: 2 года",
+    "clientType": "angry",
+    "text": "ВАШ САЙТ НЕ РАБОТАЕТ! Я НЕ МОГУ ОПЛАТИТЬ! ЧТО ЗА БЕЗОБРАЗИЕ!",
+    "correctAnswer": "Извиниться предложить альтернативу",
+    "correctEffects": {"kpi": 15, "knowledge": 10, "salary": 0, "health": -5},
+    "wrongEffects": {"kpi": -20, "knowledge": -10, "salary": -10, "health": -10},
+    "answers": [
+      {"text": "Павел Викторович, приношу извинения за неудобства. Сайт сейчас восстанавливают. Вы можете оплатить через мобильное приложение или по телефону.", "isCorrect": true, "effects": {"kpi": 15, "knowledge": 10, "salary": 0, "health": -5}},
+      {"text": "Подождите, сайт скоро заработает.", "isCorrect": false, "effects": {"kpi": -10, "knowledge": -5, "salary": 0, "health": -5}},
+      {"text": "Это не моя проблема, разбирайтесь сами.", "isCorrect": false, "effects": {"kpi": -35, "knowledge": -20, "salary": -25, "health": -15}}
+    ]
+  }
+]

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Simulator — Чат поддержки</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <!-- Экран приветствия -->
+    <div id="welcome-screen" class="screen active">
+        <div class="welcome-container">
+            <div class="logo">💬</div>
+            <h1>Work Simulator</h1>
+            <p class="subtitle">Симулятор оператора чата поддержки</p>
+            
+            <div class="nickname-input">
+                <label for="nickname">Ваш ник:</label>
+                <input type="text" id="nickname" placeholder="Введите ник" maxlength="20">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="remember-nickname" checked>
+                    Запомнить меня
+                </label>
+            </div>
+            
+            <button id="start-btn" class="btn btn-primary">Начать смену</button>
+            
+            <div class="instructions">
+                <h3>Как играть:</h3>
+                <ul>
+                    <li>💬 Отвечайте на сообщения клиентов в чате</li>
+                    <li>⏱️ У вас 5 минут на каждый ответ</li>
+                    <li>🎯 Выбирайте готовый вариант или напишите свой</li>
+                    <li>⭐ Клиенты сами ставят оценки</li>
+                    <li>🤖 ИИ-помощник учится на ваших ответах</li>
+                </ul>
+            </div>
+            
+            <div id="ai-info" class="ai-info">
+                <h3>🤖 ИИ-помощник</h3>
+                <p>Обучен на ответах: <span id="ai-trained-count">0</span></p>
+                <p>Точность рекомендаций: <span id="ai-accuracy">0</span>%</p>
+            </div>
+            
+            <div id="leaderboard" class="leaderboard">
+                <h3>🏆 Таблица лидеров</h3>
+                <div id="leaderboard-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран игры -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div class="player-info">
+                👤 <span id="player-nickname">Игрок</span>
+            </div>
+            <div class="header-actions">
+                <button id="ai-hint-btn" class="ai-hint-btn" style="display:none;">
+                    💡 Подсказка ИИ
+                </button>
+                <div class="timer-container">
+                    <span class="timer-icon">⏱️</span>
+                    <span id="timer" class="timer">05:00</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Метрики -->
+        <div class="metrics-bar">
+            <div class="metric">
+                <span class="metric-icon">⭐</span>
+                <span class="metric-label">KPI</span>
+                <div class="metric-bar">
+                    <div id="kpi-bar" class="metric-fill kpi"></div>
+                </div>
+                <span id="kpi-value" class="metric-value">50</span>
+            </div>
+            <div class="metric">
+                <span class="metric-icon">🧠</span>
+                <span class="metric-label">Знания</span>
+                <div class="metric-bar">
+                    <div id="knowledge-bar" class="metric-fill knowledge"></div>
+                </div>
+                <span id="knowledge-value" class="metric-value">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-icon">💰</span>
+                <span class="metric-label">Зарплата</span>
+                <div class="metric-bar">
+                    <div id="salary-bar" class="metric-fill salary"></div>
+                </div>
+                <span id="salary-value" class="metric-value">50</span>
+            </div>
+            <div class="metric">
+                <span class="metric-icon">😊</span>
+                <span class="metric-label">Настроение</span>
+                <div class="metric-bar">
+                    <div id="health-bar" class="metric-fill health"></div>
+                </div>
+                <span id="health-value" class="metric-value">100</span>
+            </div>
+        </div>
+
+        <!-- Информация о сообщении -->
+        <div class="call-info">
+            <span id="call-counter">Сообщение 1 / 20</span>
+        </div>
+
+        <!-- Чат-интерфейс -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="chat-client-info">
+                    <div class="client-avatar" id="client-avatar">👵</div>
+                    <div>
+                        <div class="client-name" id="client-name">Бабушка Зина</div>
+                        <div class="client-status">
+                            <span class="status-dot online"></span>
+                            <span id="client-status-text">Клиент</span>
+                        </div>
+                        <div class="client-info" id="client-info" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages"></div>
+        </div>
+
+        <!-- Варианты ответов -->
+        <div id="answers-section" class="answers-section" style="display:none;">
+            <h3>Выберите ответ:</h3>
+            <div id="answers-list" class="answers-list"></div>
+            
+            <div class="custom-answer">
+                <h3>Или напишите свой ответ:</h3>
+                <textarea id="custom-answer-input" placeholder="Введите ваш ответ..."></textarea>
+                <button id="submit-custom-btn" class="btn btn-primary">Отправить</button>
+            </div>
+
+            <div class="extra-actions">
+                <button id="search-kb-btn" class="btn btn-action">
+                    🔍 База знаний
+                </button>
+                <button id="transfer-btn" class="btn btn-action">
+                    🔄 Передать старшему
+                </button>
+            </div>
+        </div>
+
+        <!-- Оценка клиента -->
+        <div id="rating-section" class="rating-section" style="display:none;">
+            <h3>Оценка клиента:</h3>
+            <div id="client-rating" class="client-rating"></div>
+            <div id="client-reaction" class="client-reaction"></div>
+            <button id="next-call-btn" class="btn btn-primary">Следующее сообщение</button>
+        </div>
+
+        <!-- База знаний (модальное окно) -->
+        <div id="knowledge-modal" class="modal">
+            <div class="modal-content">
+                <h2>📚 База знаний</h2>
+                <input type="text" id="search-input" placeholder="Поиск...">
+                <div id="kb-results" class="kb-results"></div>
+                <button id="close-kb-btn" class="btn btn-secondary">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Всплывающая подсказка ИИ -->
+        <div id="ai-popup" class="ai-popup" style="display:none;">
+            <div class="ai-popup-header">
+                <span>🤖 ИИ-помощник</span>
+                <button id="close-ai-popup" class="ai-popup-close">×</button>
+            </div>
+            <div class="ai-popup-content">
+                <p>На основе ваших предыдущих ответов рекомендую:</p>
+                <div id="ai-popup-answer" class="ai-popup-answer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран концовки -->
+    <div id="ending-screen" class="screen">
+        <div class="ending-container">
+            <h1 id="ending-title">Смена завершена!</h1>
+            <div id="ending-text" class="ending-text"></div>
+            <div class="final-stats">
+                <h3>📊 Итоговая статистика:</h3>
+                <p>⭐ KPI: <span id="final-kpi">0</span></p>
+                <p>🧠 Знания: <span id="final-knowledge">0</span></p>
+                <p>💰 Зарплата: <span id="final-salary">0</span></p>
+                <p>😊 Настроение: <span id="final-health">0</span></p>
+                <hr>
+                <p>💬 Всего сообщений: <span id="stat-total">0</span></p>
+                <p>✅ Правильных ответов: <span id="stat-correct">0</span></p>
+                <p>❌ Неправильных ответов: <span id="stat-wrong">0</span></p>
+                <p>⭐ Средняя оценка: <span id="stat-avg-rating">0</span></p>
+                <p>🤖 ИИ обучен на: <span id="stat-ai-trained">0</span> ответах</p>
+            </div>
+            <div id="save-result-section" class="save-result-section">
+                <p>💾 Сохранить результат?</p>
+                <button id="save-result-btn" class="btn btn-primary">Сохранить</button>
+            </div>
+            <button id="restart-btn" class="btn btn-secondary">В главное меню</button>
+        </div>
+    </div>
+
+    <script src="scripts/game.js"></script>
+</body>
+</html>
