@@ -3,7 +3,7 @@ const gameState = {
     nickname: '',
     metrics: { kpi: 50, knowledge: 0, salary: 50, health: 100 },
     currentCall: 0,
-    totalCalls: 20,
+    totalCalls: 10, // УМЕНЬШЕНО ДО 10
     calls: [],
     knowledgeBase: [],
     shuffledCalls: [],
@@ -42,7 +42,6 @@ async function loadData() {
     }
 }
 
-// Тестовые данные, если JSON не загрузился
 function loadFallbackData() {
     gameState.calls = [
         {
@@ -52,21 +51,8 @@ function loadFallbackData() {
             correctEffects: { kpi: 10, knowledge: 5, salary: 0, health: 0 },
             wrongEffects: { kpi: -15, knowledge: -10, salary: 0, health: -5 },
             answers: [
-                { text: 'Зайдите в Настройки → Экран → Размер шрифта и потяните ползунок вправо.', isCorrect: true, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
-                { text: 'Разведите пальцы на экране.', isCorrect: false, effects: { kpi: -5, knowledge: 0, salary: 0, health: 0 } },
-                { text: 'Купите новый телефон.', isCorrect: false, effects: { kpi: -20, knowledge: -10, salary: -10, health: -5 } }
-            ]
-        },
-        {
-            id: 2, avatar: '😡', clientName: 'Виктор Сидоров', clientStatus: 'Постоянный клиент', clientType: 'angry',
-            text: 'У меня интернет не работает уже 2 часа! Решайте!',
-            correctAnswer: 'Перезагрузите роутер',
-            correctEffects: { kpi: 15, knowledge: 10, salary: 5, health: -5 },
-            wrongEffects: { kpi: -20, knowledge: -10, salary: -10, health: -10 },
-            answers: [
-                { text: 'Перезагрузите роутер, выключив его на 30 секунд.', isCorrect: true, effects: { kpi: 15, knowledge: 10, salary: 5, health: -5 } },
-                { text: 'Это ваши проблемы.', isCorrect: false, effects: { kpi: -30, knowledge: -15, salary: -20, health: -15 } },
-                { text: 'Подождите, сейчас разберёмся.', isCorrect: true, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } }
+                { text: 'Зайдите в Настройки → Экран → Размер шрифта.', isCorrect: true, clientSatisfaction: 5, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
+                { text: 'Разведите пальцы на экране.', isCorrect: false, clientSatisfaction: 2, effects: { kpi: -5, knowledge: 0, salary: 0, health: 0 } }
             ]
         }
     ];
@@ -189,7 +175,6 @@ function applyEffects(effects) {
     updateMetrics();
 }
 
-// ТОЧНЫЙ ТАЙМЕР — использует Date.now()
 function startTimer() {
     clearInterval(gameState.timerInterval);
     gameState.timeLeft = 300;
@@ -225,18 +210,18 @@ function handleTimeout() {
     const call = gameState.shuffledCalls[gameState.currentCall];
     if (!call) return;
     
-    const answer = { text: 'Не ответил вовремя', isCorrect: false, effects: call.wrongEffects };
+    const answer = { text: 'Не ответил вовремя', isCorrect: false, clientSatisfaction: 1, effects: call.wrongEffects };
     applyEffects(answer.effects);
     
     gameState.stats.totalCalls++;
     gameState.stats.wrongAnswers++;
     gameState.stats.ratings.push(1);
     
-    showClientRating(call, answer, 1);
+    showClientRatingInChat(call, answer, 1);
 }
 
 function checkEndings() {
-    if (gameState.currentCall < gameState.totalCalls) return false;
+    if (gameState.currentCall < gameState.totalCalls && gameState.currentCall < gameState.shuffledCalls.length) return false;
     
     const avgRating = gameState.stats.ratings.length > 0 
         ? gameState.stats.ratings.reduce((a, b) => a + b, 0) / gameState.stats.ratings.length 
@@ -310,11 +295,9 @@ function showCall() {
     document.getElementById('client-avatar').textContent = call.avatar;
     document.getElementById('client-name').textContent = call.clientName;
     
-    // Обновляем статус клиента
     const statusEl = document.getElementById('client-status-text');
     if (statusEl) statusEl.textContent = call.clientStatus || 'Клиент';
     
-    // Обновляем дополнительную информацию (если есть)
     const infoEl = document.getElementById('client-info');
     if (infoEl) {
         if (call.clientInfo) {
@@ -333,7 +316,6 @@ function showCall() {
     chatMessages.innerHTML = '';
     
     document.getElementById('answers-section').style.display = 'none';
-    document.getElementById('rating-section').style.display = 'none';
     
     showTypingIndicator(call, () => {
         showMessage(call, () => {
@@ -382,9 +364,138 @@ function showMessage(call, callback) {
     chatMessages.appendChild(messageEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
+    setTimeout(() => {
+        showAIComment(call, () => {
+            if (callback) callback();
+        });
+    }, 500);
+}
+
+// НОВОЕ: Показать ответ оператора в чате
+function showOperatorMessage(text, callback) {
+    const chatMessages = document.getElementById('chat-messages');
+    const now = new Date();
+    const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const messageEl = document.createElement('div');
+    messageEl.className = 'operator-message';
+    messageEl.innerHTML = `
+        <div class="message-avatar">👤</div>
+        <div class="message-content">
+            <div class="message-text">${text}</div>
+            <div class="message-time">${timeString}</div>
+        </div>
+    `;
+    chatMessages.appendChild(messageEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
     if (callback) {
-        setTimeout(callback, 500);
+        setTimeout(callback, 800);
     }
+}
+
+// НОВОЕ: Показать ответ клиента после оператора
+function showClientResponse(call, rating, callback) {
+    const chatMessages = document.getElementById('chat-messages');
+    const now = new Date();
+    const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const reaction = getClientReaction(call, rating);
+    
+    const messageEl = document.createElement('div');
+    messageEl.className = 'message client-message';
+    messageEl.innerHTML = `
+        <div class="message-avatar">${call.avatar}</div>
+        <div class="message-content">
+            <div class="message-text">${reaction}</div>
+            <div class="message-time">${timeString}</div>
+        </div>
+    `;
+    chatMessages.appendChild(messageEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    if (callback) {
+        setTimeout(callback, 1000);
+    }
+}
+
+// НОВОЕ: Показать оценку в чате
+function showClientRatingInChat(call, answer, rating) {
+    const chatMessages = document.getElementById('chat-messages');
+    
+    const stars = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
+    const details = generateRatingDetails(call, answer, rating);
+    
+    const ratingEl = document.createElement('div');
+    ratingEl.className = 'chat-rating';
+    ratingEl.innerHTML = `
+        <div class="chat-rating-stars">${stars}</div>
+        <div class="chat-rating-details">${details}</div>
+    `;
+    chatMessages.appendChild(ratingEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Переход к следующему сообщению через 3 секунды
+    setTimeout(() => {
+        nextCall();
+    }, 3000);
+}
+
+function showAIComment(call, callback) {
+    const chatMessages = document.getElementById('chat-messages');
+    const aiComment = generateAIComment(call);
+    
+    const commentEl = document.createElement('div');
+    commentEl.className = 'ai-comment';
+    commentEl.innerHTML = `
+        <div class="ai-comment-avatar">🤖</div>
+        <div class="ai-comment-content">
+            <div class="ai-comment-label">ИИ-помощник</div>
+            <div class="ai-comment-text">${aiComment}</div>
+        </div>
+    `;
+    chatMessages.appendChild(commentEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    if (callback) {
+        setTimeout(callback, 800);
+    }
+}
+
+function generateAIComment(call) {
+    const questionWords = extractKeywords(call.text);
+    const articlesWithRelevance = gameState.knowledgeBase.map(article => {
+        const relevance = calculateRelevance(questionWords, article.keywords, call.text);
+        return { ...article, relevance };
+    });
+    articlesWithRelevance.sort((a, b) => b.relevance - a.relevance);
+    const bestArticle = articlesWithRelevance[0];
+    
+    const commentTemplates = {
+        grandma: ["Похоже, нужна тёплая инструкция. Бабушки любят пошаговые объяснения "],
+        angry: ["Клиент на взводе! Сначала извинись, потом решай "],
+        business: ["Деловой клиент — цени время. Коротко, по делу "],
+        vip: ["VIP-клиент! Обращайся по имени-отчеству "],
+        student: ["Студент — можно попроще, но не панибратски 🎓"]
+    };
+    
+    let comment = '';
+    if (bestArticle && bestArticle.relevance >= 40) {
+        comment = `💡 Похоже на проблему "<strong>${bestArticle.title}</strong>". Загляни в базу знаний!`;
+    } else {
+        const templates = commentTemplates[call.clientType] || commentTemplates.student;
+        comment = templates[0];
+    }
+    
+    if (gameState.ai.learnedAnswers[call.id]) {
+        const answers = gameState.ai.learnedAnswers[call.id];
+        const bestAnswer = Object.entries(answers).sort((a, b) => b[1] - a[1])[0];
+        if (bestAnswer && bestAnswer[1] >= 2) {
+            comment += `<br><br>🎓 <em>Ты уже решал такое. Нажми " Подсказка ИИ"!</em>`;
+        }
+    }
+    
+    return comment;
 }
 
 function showAnswerOptions(call) {
@@ -420,7 +531,6 @@ function normalizeText(text) {
     return text.toLowerCase().replace(/[^\wа-яё\s]/gi, '').replace(/\s+/g, ' ').trim();
 }
 
-// ПОДСКАЗКА ИИ — кнопка сбоку + всплывающее окно
 function showAIHint(call) {
     const hintBtn = document.getElementById('ai-hint-btn');
     if (!hintBtn) return;
@@ -444,9 +554,26 @@ function showAIHint(call) {
 function showAIPopup(answerText) {
     const popup = document.getElementById('ai-popup');
     const answerEl = document.getElementById('ai-popup-answer');
+    const insertBtn = document.getElementById('insert-ai-answer-btn');
     
     answerEl.textContent = answerText;
     popup.style.display = 'block';
+    popup.dataset.currentAnswer = answerText;
+    
+    insertBtn.onclick = () => insertAIAnswer(answerText);
+}
+
+function insertAIAnswer(answerText) {
+    const textarea = document.getElementById('custom-answer-input');
+    if (textarea.value.trim()) {
+        textarea.value = textarea.value.trim() + '\n\n' + answerText;
+    } else {
+        textarea.value = answerText;
+    }
+    hideAIPopup();
+    textarea.focus();
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showNotification('📋 Ответ вставлен. Можете отредактировать!', 'success');
 }
 
 function hideAIPopup() {
@@ -456,31 +583,37 @@ function hideAIPopup() {
 
 function handleAnswer(call, answer) {
     clearInterval(gameState.timerInterval);
-    applyEffects(answer.effects);
     
-    gameState.stats.totalCalls++;
-    if (answer.isCorrect) gameState.stats.correctAnswers++;
-    else gameState.stats.wrongAnswers++;
+    // Скрываем варианты ответов
+    document.getElementById('answers-section').style.display = 'none';
     
-    const rating = generateClientRating(call, answer);
-    gameState.stats.ratings.push(rating);
-    trainAI(call, answer);
-    showClientRating(call, answer, rating);
+    // 1. Показываем ответ оператора в чате
+    showOperatorMessage(answer.text, () => {
+        // 2. Применяем эффекты (KPI, знания и т.д.)
+        applyEffects(answer.effects);
+        
+        // 3. Обновляем статистику
+        gameState.stats.totalCalls++;
+        if (answer.isCorrect) gameState.stats.correctAnswers++;
+        else gameState.stats.wrongAnswers++;
+        
+        // 4. Генерируем оценку на основе clientSatisfaction
+        const rating = answer.clientSatisfaction || 3;
+        gameState.stats.ratings.push(rating);
+        
+        // 5. Обучаем ИИ
+        trainAI(call, answer);
+        
+        // 6. Показываем ответ клиента
+        showClientResponse(call, rating, () => {
+            // 7. Показываем оценку в чате
+            showClientRatingInChat(call, answer, rating);
+        });
+    });
 }
 
 function generateClientRating(call, answer) {
-    let baseRating = 3;
-    if (answer.isCorrect) baseRating = 4 + Math.random();
-    else baseRating = 1 + Math.random() * 2;
-    
-    if (gameState.timeLeft > 240) baseRating += 0.3;
-    else if (gameState.timeLeft < 60) baseRating -= 0.3;
-    
-    if (call.clientType === 'angry') baseRating -= 0.5;
-    else if (call.clientType === 'vip') baseRating -= 0.3;
-    else if (call.clientType === 'grandma') baseRating += 0.5;
-    
-    return Math.max(1, Math.min(5, Math.round(baseRating)));
+    return answer.clientSatisfaction || 3;
 }
 
 function getClientReaction(call, rating) {
@@ -500,7 +633,7 @@ function getClientReaction(call, rating) {
             1: '💢 "ВСЁ! Я ЗВОНЮ В ПРОКУРАТУРУ!"'
         },
         business: {
-            5: '👔 "Отлично. Именно такой сервис мы и ожидаем."',
+            5: ' "Отлично. Именно такой сервис мы и ожидаем."',
             4: '💼 "Приемлемо. Но в следующий раз будьте оперативнее."',
             3: '😐 "Средне. Я ожидаю большего."',
             2: '😠 "Это неприемлемо. Пересмотрим условия."',
@@ -511,12 +644,12 @@ function getClientReaction(call, rating) {
             4: '🎩 "Неплохо. Но мой помощник ожидает большего."',
             3: '😒 "Серьёзно? Позовите того, кто решает."',
             2: '😤 "Вы понимаете, кто я? Это конец вашей карьеры."',
-            1: '💀 "Мой юрист свяжется с вами. Вы уволены."'
+            1: ' "Мой юрист свяжется с вами. Вы уволены."'
         },
         student: {
             5: '🎮 "Крутяк, спасибо! Ты реально спасла 😎"',
             4: '😎 "Норм, спасибо. Помогла."',
-            3: '🤷 "Ну окей... Не совсем то, что я хотел."',
+            3: ' "Ну окей... Не совсем то, что я хотел."',
             2: '😒 "Слушай, ты вообще в теме?"',
             1: '🤦 "Ты издеваешься? Потратил время зря."'
         }
@@ -541,19 +674,44 @@ function trainAI(call, answer) {
     saveAI();
 }
 
-function showClientRating(call, answer, rating) {
-    document.getElementById('answers-section').style.display = 'none';
-    document.getElementById('rating-section').style.display = 'block';
+function generateRatingDetails(call, answer, rating) {
+    const pros = [];
+    const cons = [];
+    let advice = '';
     
-    const ratingEl = document.getElementById('client-rating');
-    const reactionEl = document.getElementById('client-reaction');
+    if (answer.isCorrect) {
+        pros.push('Решение проблемы клиента');
+        if (gameState.timeLeft > 240) pros.push('Быстрый ответ');
+        if (answer.text.includes(call.clientName.split(' ')[0])) pros.push('Персональное обращение');
+    } else {
+        cons.push('Неверное решение проблемы');
+        if (gameState.timeLeft < 60) cons.push('Слишком долгий ответ');
+    }
     
-    const stars = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
-    ratingEl.textContent = stars;
-    reactionEl.textContent = getClientReaction(call, rating);
+    if (call.clientType === 'angry' && rating >= 4) pros.push('Смог успокоить клиента');
+    else if (call.clientType === 'angry' && rating <= 2) cons.push('Не справился с негативом');
+    
+    const adviceTemplates = {
+        5: 'Превосходная работа!',
+        4: 'Отличный ответ.',
+        3: 'Неплохо, но можно лучше.',
+        2: 'Стоит пересмотреть подход.',
+        1: 'Серьёзная ошибка.'
+    };
+    advice = adviceTemplates[rating];
+    
+    let html = '';
+    if (pros.length > 0) {
+        html += `<div class="pros">✅ ${pros.join(', ')}</div>`;
+    }
+    if (cons.length > 0) {
+        html += `<div class="cons">⚠️ ${cons.join(', ')}</div>`;
+    }
+    html += `<div>💡 <strong>Совет:</strong> ${advice}</div>`;
+    
+    return html;
 }
 
-// ЗАЩИТА ОТ БРЕДА + Расстояние Левенштейна
 function checkCustomAnswer(userAnswer, correctAnswer) {
     const normalizedUser = normalizeText(userAnswer);
     const normalizedCorrect = normalizeText(correctAnswer);
@@ -566,23 +724,19 @@ function checkCustomAnswer(userAnswer, correctAnswer) {
     }
     const maxFrequency = Math.max(...Object.values(charFrequency));
     const repeatRatio = maxFrequency / normalizedUser.length;
-    
     if (repeatRatio > 0.5) return false;
     
     const vowels = 'аеёиоуыэюяaeiou'.split('');
     const vowelCount = normalizedUser.split('').filter(c => vowels.includes(c)).length;
     const vowelRatio = vowelCount / normalizedUser.length;
-    
     if (vowelRatio < 0.15 || vowelRatio > 0.65) return false;
     
     const userWords = normalizedUser.split(' ').filter(w => w.length > 2);
     const uniqueWords = new Set(userWords);
-    
     if (uniqueWords.size < 3) return false;
     
     const correctWords = normalizedCorrect.split(' ');
     let matchCount = 0;
-    
     correctWords.forEach(word => {
         if (word.length > 3 && userWords.some(uw => 
             uw.includes(word) || word.includes(uw) || 
@@ -592,39 +746,24 @@ function checkCustomAnswer(userAnswer, correctAnswer) {
         }
     });
     
-    const matchPercentage = matchCount / correctWords.length;
-    
-    return matchPercentage >= 0.4;
+    return (matchCount / correctWords.length) >= 0.4;
 }
 
 function levenshteinDistance(a, b) {
     if (a.length === 0) return b.length;
     if (b.length === 0) return a.length;
-    
     const matrix = [];
-    
-    for (let i = 0; i <= b.length; i++) {
-        matrix[i] = [i];
-    }
-    
-    for (let j = 0; j <= a.length; j++) {
-        matrix[0][j] = j;
-    }
-    
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
     for (let i = 1; i <= b.length; i++) {
         for (let j = 1; j <= a.length; j++) {
             if (b.charAt(i - 1) === a.charAt(j - 1)) {
                 matrix[i][j] = matrix[i - 1][j - 1];
             } else {
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j - 1] + 1,
-                    matrix[i][j - 1] + 1,
-                    matrix[i - 1][j] + 1
-                );
+                matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
             }
         }
     }
-    
     return matrix[b.length][a.length];
 }
 
@@ -643,119 +782,73 @@ function handleCustomAnswer(call) {
     const answer = {
         text: customText,
         isCorrect: isCorrect,
+        clientSatisfaction: isCorrect ? 4 : 2,
         effects: isCorrect ? call.correctEffects : call.wrongEffects
     };
     
-    applyEffects(answer.effects);
-    gameState.stats.totalCalls++;
-    if (isCorrect) gameState.stats.correctAnswers++;
-    else gameState.stats.wrongAnswers++;
-    
-    const rating = generateClientRating(call, answer);
-    gameState.stats.ratings.push(rating);
-    trainAI(call, answer);
-    showClientRating(call, answer, rating);
+    handleAnswer(call, answer);
     input.value = '';
 }
 
-// БАЗА ЗНАНИЙ — с релевантностью и штрафом по времени
 function openKnowledgeBase(call) {
     const modal = document.getElementById('knowledge-modal');
     modal.classList.add('active');
     
     const resultsDiv = document.getElementById('kb-results');
     resultsDiv.innerHTML = `
-        <div class="kb-warning">
-            ⚠️ <strong>Внимание!</strong> Поиск в базе знаний занимает время. 
-            При использовании ответа из базы <strong>таймер уменьшится на 30 секунд</strong>.
-        </div>
-        <div class="kb-searching">
-            <div class="kb-searching-spinner"></div>
-            <p>Ищем подходящие ответы...</p>
-        </div>
+        <div class="kb-warning">⚠️ <strong>Внимание!</strong> Поиск отнимает 30 секунд.</div>
+        <div class="kb-searching"><div class="kb-searching-spinner"></div><p>Ищем...</p></div>
     `;
     
-    setTimeout(() => {
-        displayKBResults(call);
-    }, 1500);
+    setTimeout(() => displayKBResults(call), 1500);
 }
 
 function displayKBResults(call) {
     const resultsDiv = document.getElementById('kb-results');
-    
     const questionWords = extractKeywords(call.text);
-    
     const articlesWithRelevance = gameState.knowledgeBase.map(article => {
         const relevance = calculateRelevance(questionWords, article.keywords, call.text);
         return { ...article, relevance };
     });
-    
     articlesWithRelevance.sort((a, b) => b.relevance - a.relevance);
-    
     const topArticles = articlesWithRelevance.slice(0, 5).filter(a => a.relevance > 0);
     
-    resultsDiv.innerHTML = `
-        <div class="kb-warning">
-            ⚠️ <strong>Внимание!</strong> При использовании ответа из базы <strong>таймер уменьшится на 30 секунд</strong>.
-            Свой ответ ИИ запомнит, а ответ из базы — нет.
-        </div>
-    `;
+    resultsDiv.innerHTML = '<div class="kb-warning">️ При использовании ответа таймер уменьшится на 30 секунд.</div>';
     
     if (topArticles.length === 0) {
-        resultsDiv.innerHTML += '<p style="text-align:center;color:#999;padding:20px;">🔍 Ничего не найдено. Попробуйте написать свой ответ.</p>';
+        resultsDiv.innerHTML += '<p style="text-align:center;color:#999;padding:20px;">🔍 Ничего не найдено.</p>';
         return;
     }
     
     topArticles.forEach(article => {
         const articleEl = document.createElement('div');
         articleEl.className = 'kb-article';
-        
         let relevanceClass = 'low';
-        let relevanceText = `${article.relevance}% совпадение`;
         if (article.relevance >= 70) relevanceClass = 'high';
         else if (article.relevance >= 40) relevanceClass = 'medium';
-        
         const highlightedAnswer = highlightKeywords(article.answer, questionWords);
-        
         articleEl.innerHTML = `
-            <h4>
-                ${article.title}
-                <span class="kb-relevance ${relevanceClass}">${relevanceText}</span>
-            </h4>
+            <h4>${article.title}<span class="kb-relevance ${relevanceClass}">${article.relevance}%</span></h4>
             <p>${highlightedAnswer}</p>
-            <button class="btn btn-primary" onclick="useKBArticle('${article.answer.replace(/'/g, "\\'")}')">
-                🔍 Использовать этот ответ (-30 сек)
-            </button>
+            <button class="btn btn-primary" onclick="useKBArticle('${article.answer.replace(/'/g, "\\'")}')">Использовать (-30 сек)</button>
         `;
         resultsDiv.appendChild(articleEl);
     });
 }
 
 function extractKeywords(text) {
-    const stopWords = ['и', 'в', 'на', 'с', 'по', 'для', 'что', 'как', 'это', 'у', 'к', 'но', 'а', 'не', 'я', 'мне', 'мой', 'ваш', 'тут', 'там', 'уже', 'очень'];
-    const words = text.toLowerCase()
-        .replace(/[^\wа-яё\s]/gi, ' ')
-        .split(/\s+/)
-        .filter(w => w.length > 2 && !stopWords.includes(w));
-    return [...new Set(words)];
+    const stopWords = ['и', 'в', 'на', 'с', 'по', 'для', 'что', 'как', 'это', 'у', 'к', 'но', 'а', 'не', 'я', 'мне', 'мой', 'ваш'];
+    return [...new Set(text.toLowerCase().replace(/[^\wа-яё\s]/gi, ' ').split(/\s+/).filter(w => w.length > 2 && !stopWords.includes(w)))];
 }
 
 function calculateRelevance(questionWords, articleKeywords, fullText) {
     let score = 0;
-    let maxScore = 0;
-    
-    const keywordMatches = articleKeywords.filter(kw => 
-        questionWords.some(qw => qw.includes(kw) || kw.includes(qw))
-    );
+    const keywordMatches = articleKeywords.filter(kw => questionWords.some(qw => qw.includes(kw) || kw.includes(qw)));
     score += (keywordMatches.length / Math.max(articleKeywords.length, 1)) * 60;
-    maxScore += 60;
-    
     const textLower = fullText.toLowerCase();
     const textMatches = articleKeywords.filter(kw => textLower.includes(kw));
     score += (textMatches.length / Math.max(articleKeywords.length, 1)) * 40;
-    maxScore += 40;
-    
-    return Math.round((score / maxScore) * 100);
+    return Math.round(score);
 }
 
 function highlightKeywords(text, keywords) {
@@ -781,7 +874,6 @@ window.useKBArticle = function(answerText) {
 function applyTimePenalty(seconds) {
     gameState.timeLeft = Math.max(0, gameState.timeLeft - seconds);
     updateTimerDisplay();
-    
     if (gameState.timeLeft <= 0) {
         clearInterval(gameState.timerInterval);
         handleTimeout();
@@ -791,17 +883,29 @@ function applyTimePenalty(seconds) {
 function showTimePenaltyNotification(seconds) {
     const notification = document.createElement('div');
     notification.className = 'time-penalty-notification';
-    notification.innerHTML = `⏱️ Поиск в базе знаний: <strong>-${seconds} секунд</strong>`;
+    notification.innerHTML = `️ Поиск в базе: <strong>-${seconds} сек</strong>`;
     document.body.appendChild(notification);
-    
+    setTimeout(() => notification.remove(), 2500);
+}
+
+function showNotification(text, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = text;
+    document.body.appendChild(notification);
     setTimeout(() => {
-        notification.remove();
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 500);
     }, 2500);
 }
 
 function nextCall() {
     gameState.currentCall++;
-    setTimeout(() => showCall(), 500);
+    if (gameState.currentCall >= gameState.totalCalls || gameState.currentCall >= gameState.shuffledCalls.length) {
+        checkEndings();
+    } else {
+        setTimeout(() => showCall(), 500);
+    }
 }
 
 function startGame() {
@@ -821,10 +925,10 @@ function startGame() {
     gameState.metrics = { kpi: 50, knowledge: 0, salary: 50, health: 100 };
     gameState.stats = { totalCalls: 0, correctAnswers: 0, wrongAnswers: 0, ratings: [], aiTrained: 0 };
     
-    if (gameState.calls.length < 20) {
-        gameState.shuffledCalls = shuffleArray([...gameState.calls, ...generateExtraCalls()]).slice(0, gameState.totalCalls);
+    if (gameState.calls.length < 10) {
+        gameState.shuffledCalls = shuffleArray([...gameState.calls, ...generateExtraCalls()]).slice(0, 10);
     } else {
-        gameState.shuffledCalls = shuffleArray(gameState.calls).slice(0, gameState.totalCalls);
+        gameState.shuffledCalls = shuffleArray(gameState.calls).slice(0, 10);
     }
     
     document.getElementById('player-nickname').textContent = nickname;
@@ -836,13 +940,23 @@ function startGame() {
     showCall();
 }
 
+function endShiftEarly() {
+    if (confirm('Вы уверены, что хотите завершить смену досрочно?')) {
+        const ending = {
+            title: '⏹️ Смена завершена досрочно',
+            text: `Вы завершили смену после ${gameState.currentCall} сообщений. Средняя оценка: ${gameState.stats.ratings.length > 0 ? (gameState.stats.ratings.reduce((a, b) => a + b, 0) / gameState.stats.ratings.length).toFixed(1) : '0.0'}/5`
+        };
+        showEnding(ending);
+    }
+}
+
 function generateExtraCalls() {
     const templates = [
-        { avatar: '👵', clientName: 'Галина Морозова', clientStatus: 'Пенсионер, клиент с 2010 года', clientType: 'grandma', text: 'Как отправить фото по вотсапу?' },
-        { avatar: '😡', clientName: 'Андрей Волков', clientStatus: 'Постоянный клиент', clientType: 'angry', text: 'Почему списали деньги дважды?!' },
-        { avatar: '🧑‍💼', clientName: 'Дмитрий Соколов', clientStatus: 'Директор ООО "ТехноПром"', clientType: 'business', text: 'Нужно подключить 50 сотрудников.' },
-        { avatar: '👑', clientName: 'Елена Романова', clientStatus: 'VIP с 2015 года', clientType: 'vip', text: 'Почему лагает видео?' },
-        { avatar: '🤷', clientName: 'Максим Лебедев', clientStatus: 'Студент, новый клиент', clientType: 'student', text: 'Можно пароль от Wi-Fi соседа?' }
+        { avatar: '👵', clientName: 'Галина Морозова', clientStatus: 'Пенсионер', clientType: 'grandma', text: 'Как отправить фото по вотсапу?' },
+        { avatar: '', clientName: 'Андрей Волков', clientStatus: 'Постоянный клиент', clientType: 'angry', text: 'Почему списали деньги дважды?!' },
+        { avatar: '🧑‍💼', clientName: 'Дмитрий Соколов', clientStatus: 'Директор ООО', clientType: 'business', text: 'Нужно подключить 50 сотрудников.' },
+        { avatar: '👑', clientName: 'Елена Романова', clientStatus: 'VIP', clientType: 'vip', text: 'Почему лагает видео?' },
+        { avatar: '🤷', clientName: 'Максим Лебедев', clientStatus: 'Студент', clientType: 'student', text: 'Можно пароль от Wi-Fi соседа?' }
     ];
     
     return templates.map((t, i) => ({
@@ -852,14 +966,12 @@ function generateExtraCalls() {
         correctEffects: { kpi: 10, knowledge: 5, salary: 0, health: 0 },
         wrongEffects: { kpi: -10, knowledge: -5, salary: 0, health: -5 },
         answers: [
-            { text: 'Сейчас помогу решить вашу проблему. Уточните, пожалуйста, детали.', isCorrect: true, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
-            { text: 'Это не моя компетенция. До свидания.', isCorrect: false, effects: { kpi: -10, knowledge: -5, salary: 0, health: -5 } },
-            { text: 'Обратитесь позже, сейчас не могу.', isCorrect: false, effects: { kpi: -15, knowledge: -10, salary: -5, health: -5 } }
+            { text: 'Сейчас помогу. Уточните детали.', isCorrect: true, clientSatisfaction: 4, effects: { kpi: 10, knowledge: 5, salary: 0, health: 0 } },
+            { text: 'Это не моя компетенция.', isCorrect: false, clientSatisfaction: 1, effects: { kpi: -10, knowledge: -5, salary: 0, health: -5 } }
         ]
     }));
 }
 
-// Инициализация
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
@@ -867,12 +979,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchKbBtn = document.getElementById('search-kb-btn');
     const transferBtn = document.getElementById('transfer-btn');
     const submitCustomBtn = document.getElementById('submit-custom-btn');
-    const nextCallBtn = document.getElementById('next-call-btn');
     const closeKbBtn = document.getElementById('close-kb-btn');
     const closeAiPopupBtn = document.getElementById('close-ai-popup');
+    const endShiftBtn = document.getElementById('end-shift-btn');
     const nicknameInput = document.getElementById('nickname');
     
     if (startBtn) startBtn.addEventListener('click', startGame);
+    if (endShiftBtn) endShiftBtn.addEventListener('click', endShiftEarly);
     
     if (restartBtn) {
         restartBtn.addEventListener('click', () => {
@@ -892,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : 0;
             saveToLeaderboard(gameState.nickname, score, avgRating);
             gameState.resultSaved = true;
-            document.getElementById('save-result-section').innerHTML = '<p style="color:#4caf50;font-weight:bold;">✅ Результат сохранён!</p>';
+            document.getElementById('save-result-section').innerHTML = '<p style="color:#4caf50;font-weight:bold;">✅ Сохранено!</p>';
         });
     }
     
@@ -906,12 +1019,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (transferBtn) {
         transferBtn.addEventListener('click', () => {
             clearInterval(gameState.timerInterval);
-            applyEffects({ kpi: -10, knowledge: 0, salary: -5, health: 5 });
-            gameState.stats.totalCalls++;
-            gameState.stats.wrongAnswers++;
-            gameState.stats.ratings.push(2);
-            const call = gameState.shuffledCalls[gameState.currentCall];
-            showClientRating(call, { text: 'Передал старшему', isCorrect: false }, 2);
+            const answer = { text: 'Передал старшему', isCorrect: false, clientSatisfaction: 2, effects: { kpi: -10, knowledge: 0, salary: -5, health: 5 } };
+            handleAnswer(gameState.shuffledCalls[gameState.currentCall], answer);
         });
     }
     
@@ -921,8 +1030,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (call) handleCustomAnswer(call);
         });
     }
-    
-    if (nextCallBtn) nextCallBtn.addEventListener('click', nextCall);
     
     if (closeKbBtn) {
         closeKbBtn.addEventListener('click', () => {

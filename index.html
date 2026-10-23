@@ -26,14 +26,20 @@
             <button id="start-btn" class="btn btn-primary">Начать смену</button>
             
             <div class="instructions">
-                <h3>Как играть:</h3>
+                <h3> Как играть:</h3>
                 <ul>
-                    <li>💬 Отвечайте на сообщения клиентов в чате</li>
-                    <li>⏱️ У вас 5 минут на каждый ответ</li>
-                    <li>🎯 Выбирайте готовый вариант или напишите свой</li>
-                    <li>⭐ Клиенты сами ставят оценки</li>
-                    <li>🤖 ИИ-помощник учится на ваших ответах</li>
+                    <li>💬 <strong>Читай сообщения</strong> клиентов в чате</li>
+                    <li>💡 <strong>Слушай ИИ-помощника</strong> — он даёт подсказки прямо в чате</li>
+                    <li>⏱️ <strong>У тебя 5 минут</strong> на каждый ответ</li>
+                    <li>🎯 <strong>Выбирай готовый вариант</strong> или напиши свой</li>
+                    <li>📚 <strong>База знаний</strong> — но поиск отнимает 30 секунд!</li>
+                    <li>🤖 <strong>ИИ учится</strong> на твоих правильных ответах</li>
+                    <li>⭐ <strong>Клиенты ставят оценки</strong> и пишут отзывы</li>
+                    <li>️ <strong>Можно завершить смену</strong> досрочно</li>
                 </ul>
+                <div class="tips">
+                    <p>💡 <strong>Совет:</strong> иногда клиент доволен, но компания теряет деньги. Балансируй!</p>
+                </div>
             </div>
             
             <div id="ai-info" class="ai-info">
@@ -58,6 +64,9 @@
             <div class="header-actions">
                 <button id="ai-hint-btn" class="ai-hint-btn" style="display:none;">
                     💡 Подсказка ИИ
+                </button>
+                <button id="end-shift-btn" class="btn-end-shift">
+                    ️ Завершить смену
                 </button>
                 <div class="timer-container">
                     <span class="timer-icon">⏱️</span>
@@ -104,7 +113,7 @@
 
         <!-- Информация о сообщении -->
         <div class="call-info">
-            <span id="call-counter">Сообщение 1 / 20</span>
+            <span id="call-counter">Сообщение 1 / 10</span>
         </div>
 
         <!-- Чат-интерфейс -->
@@ -142,17 +151,9 @@
                     🔍 База знаний
                 </button>
                 <button id="transfer-btn" class="btn btn-action">
-                    🔄 Передать старшему
+                     Передать старшему
                 </button>
             </div>
-        </div>
-
-        <!-- Оценка клиента -->
-        <div id="rating-section" class="rating-section" style="display:none;">
-            <h3>Оценка клиента:</h3>
-            <div id="client-rating" class="client-rating"></div>
-            <div id="client-reaction" class="client-reaction"></div>
-            <button id="next-call-btn" class="btn btn-primary">Следующее сообщение</button>
         </div>
 
         <!-- База знаний (модальное окно) -->
@@ -174,6 +175,10 @@
             <div class="ai-popup-content">
                 <p>На основе ваших предыдущих ответов рекомендую:</p>
                 <div id="ai-popup-answer" class="ai-popup-answer"></div>
+                <button id="insert-ai-answer-btn" class="btn btn-insert">
+                    📋 Вставить в ответ и редактировать
+                </button>
+                <p class="ai-popup-hint">💡 После вставки вы можете изменить текст перед отправкой</p>
             </div>
         </div>
     </div>
@@ -186,7 +191,7 @@
             <div class="final-stats">
                 <h3>📊 Итоговая статистика:</h3>
                 <p>⭐ KPI: <span id="final-kpi">0</span></p>
-                <p>🧠 Знания: <span id="final-knowledge">0</span></p>
+                <p> Знания: <span id="final-knowledge">0</span></p>
                 <p>💰 Зарплата: <span id="final-salary">0</span></p>
                 <p>😊 Настроение: <span id="final-health">0</span></p>
                 <hr>
