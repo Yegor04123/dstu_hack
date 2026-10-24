@@ -233,13 +233,8 @@ function App() {
       reputation: newReputation,
       achievements: newAchievements,
     });
-    if (savedCaseIndex >= queueOrder.length) {
-      setFeedback({ clientName: cases[currentClientId].name, temperature: newTemp[currentClientId], csatDelta: result.csatDelta, escalated: result.escalated, reason: result.reason });
-      setPhase("feedback");
-    } else {
-      setFeedback({ clientName: cases[currentClientId].name, temperature: newTemp[currentClientId], csatDelta: result.csatDelta, escalated: result.escalated, reason: result.reason });
-      setPhase("feedback");
-    }
+    setFeedback({ clientName: cases[currentClientId].name, temperature: newTemp[currentClientId], csatDelta: result.csatDelta, escalated: result.escalated, reason: result.reason });
+    setPhase("feedback");
   }
 
   function openKnowledge(id: string) {

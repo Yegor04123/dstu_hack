@@ -225,8 +225,6 @@ export function DeskScreen({
   const clientHistory = notes.filter((note) => note.startsWith(`${caseItem.name}:`));
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
-  const llmLoadingRef = useRef(llmLoading);
-  llmLoadingRef.current = llmLoading;
 
   const [chatHistory, setChatHistory] = useState<DialogueNode[]>(savedChatHistory);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
@@ -277,7 +275,6 @@ export function DeskScreen({
     if (!startedAt) return;
     const getRemaining = () => Math.max(0, duration - Math.floor((Date.now() - startedAt) / 1000));
     const timer = window.setInterval(() => {
-      if (llmLoadingRef.current) return;
       const remaining = getRemaining();
       setTimeRemaining(remaining);
       if (remaining <= 0) {
