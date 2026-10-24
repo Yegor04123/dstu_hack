@@ -60,9 +60,9 @@ function App() {
 
   function startNew(nick: string, diff: Difficulty) {
     const q = [...caseOrder];
-    const cfg = difficultyConfig[diff]; // 🆕 Локальная переменная вместо diffCfg
+    const cfg = difficultyConfig[diff];
     
-    setNickname(nick || "Стажёр"); // ✅ Без пробела
+    setNickname(nick || "Стажёр");
     setDifficulty(diff);
     setQueueOrder(q);
     setCaseIndex(0);
@@ -81,13 +81,13 @@ function App() {
       c2: 20 + cfg.tempStartDelta,
       c3: 55 + cfg.tempStartDelta,
       c4: 35 + cfg.tempStartDelta,
-      c5: 50 + cfg.tempStartDelta, // ✅ Исправлена опечатка tempSta rtDelta
+      c5: 50 + cfg.tempStartDelta,
       c6: 70 + cfg.tempStartDelta,
       c7: 10 + cfg.tempStartDelta,
     });
     setOpenedKnowledge([]);
     setNotes([]);
-    setPhase("briefing"); // ✅ Без пробела
+    setPhase("briefing");
   }
 
   function continueSave() {
@@ -168,20 +168,20 @@ function App() {
   }
 
   function openKnowledge(id: string) {
-  const next = openedKnowledge.includes(id)
-    ? openedKnowledge.filter((i) => i !== id)  // Убираем статью
-    : [...openedKnowledge, id];                 // Добавляем статью
-  setOpenedKnowledge(next);
-  persist({ openedKnowledge: next });
+    const next = openedKnowledge.includes(id)
+      ? openedKnowledge.filter((i) => i !== id)
+      : [...openedKnowledge, id];
+    setOpenedKnowledge(next);
+    persist({ openedKnowledge: next });
   }
 
-  if (phase === "title") { // ✅ Без пробела
+  if (phase === "title") {
     return <TitleScreen hasSave={hasSave} onStart={startNew} onContinue={continueSave} />;
   }
-  if (phase === "briefing") { // ✅ Без пробела
+  if (phase === "briefing") {
     return <BriefingScreen nickname={nickname} difficulty={difficulty} onStart={() => setPhase("desk")} />;
   }
-  if (phase === "desk") { // ✅ Без пробела
+  if (phase === "desk") {
     if (!currentCase) {
       return (
         <DebriefScreen
