@@ -332,7 +332,7 @@ export function DeskScreen({
   }, [caseItem.id]);
 
   useEffect(() => {
-    setVisibleQueueCount(Math.min(queueOrder.length, Math.max(2, caseIndex + 1)));
+    setVisibleQueueCount((count) => Math.max(count, Math.min(queueOrder.length, Math.max(2, caseIndex + 1))));
     const interval = window.setInterval(() => setVisibleQueueCount((count) => {
       // Иногда очередь резко пополняется сразу двумя чатами.
       const incomingCount = count > 1 && count % 3 === 0 ? 2 : 1;
