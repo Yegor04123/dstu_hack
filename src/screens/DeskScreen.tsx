@@ -211,7 +211,7 @@ export function DeskScreen({
   const profile = clientProfiles[caseItem.id];
   const [trust, setTrust] = useState(profile.trust);
   const [visibleQueueCount, setVisibleQueueCount] = useState(Math.min(queueOrder.length, Math.max(2, caseIndex + 1)));
-  const visibleQueue = queueOrder.filter((id, index) => index < visibleQueueCount || index === caseIndex);
+  const visibleQueue = queueOrder.filter((_, index) => index < visibleQueueCount || index === caseIndex);
   const nextIncomingId = difficulty === "peak"
     ? queueOrder.find((id, index) => index !== caseIndex && casesDone[id] === "pending")
     : undefined;
