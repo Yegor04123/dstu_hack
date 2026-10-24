@@ -61,7 +61,7 @@ function App() {
   function startNew(nick: string, diff: Difficulty) {
     const q = [...caseOrder];
     const cfg = difficultyConfig[diff];
-    
+
     setNickname(nick || "Стажёр");
     setDifficulty(diff);
     setQueueOrder(q);
@@ -168,6 +168,7 @@ function App() {
   }
 
   function openKnowledge(id: string) {
+    // Toggle: если уже открыта — убираем, иначе добавляем
     const next = openedKnowledge.includes(id)
       ? openedKnowledge.filter((i) => i !== id)
       : [...openedKnowledge, id];
