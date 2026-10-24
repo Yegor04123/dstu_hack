@@ -372,14 +372,11 @@ export function DeskScreen({
       const hasNextOptions = nextNode.options && nextNode.options.length > 0;
 
       if (nextNode.speaker === "agent") {
-        const nextAgentText = cleanAgentText(nextNode.text);
-        const nextAgentMessage: DialogueNode = {
-          ...nextNode,
-          text: nextAgentText,
-        };
-          appendMessages([agentMessage, nextAgentMessage]);
-        } else {
-          appendMessages([agentMessage, nextNode]);
+        // Текст следующего agent-узла — это контекст для следующих вариантов,
+        // а не ещё одна реплика. Иначе первый ответ отображается дважды.
+        appendMessages([agentMessage]);
+      } else {
+        appendMessages([agentMessage, nextNode]);
       }
 
       if (hasNextOptions) {
