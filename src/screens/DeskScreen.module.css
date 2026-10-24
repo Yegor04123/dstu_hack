@@ -390,6 +390,11 @@
   gap: 6px;
 }
 
+.titleRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.titleRow h1 { min-width: 0; }
+.inlineDifficulty { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; color: var(--muted, #6b6b6b); font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; }
+.inlineDifficulty select { border: 1px solid var(--line, #d4cfc3); border-radius: 999px; padding: 7px 10px; background: white; color: var(--ink, #1a1a1a); font: inherit; text-transform: none; letter-spacing: normal; }
+
 .tabs button img { width: 18px; height: 18px; }
 
 .tabs button.activeTab {
@@ -751,6 +756,9 @@
   }
 
   .channelHeader h1 { font-size: clamp(1.45rem, 7vw, 2rem); }
+  .titleRow { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .inlineDifficulty { width: 100%; justify-content: space-between; }
+  .inlineDifficulty select { flex: 1; max-width: 180px; }
   .channelHeader p { font-size: 1rem; }
   .escalateBtn { width: 100%; min-height: 44px; }
   .dialogue { padding: 14px; gap: 12px; }

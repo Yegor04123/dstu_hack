@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { TitleScreen } from "./screens/TitleScreen";
-import { BriefingScreen } from "./screens/BriefingScreen";
+import { WorkstationScreen } from "./screens/WorkstationScreen";
 import { DeskScreen } from "./screens/DeskScreen";
 import { DebriefScreen } from "./screens/DebriefScreen";
 import { FeedbackScreen } from "./screens/FeedbackScreen";
@@ -11,7 +11,7 @@ import { DialogueNode } from "./types";
 import { clientProfiles } from "./data/clientProfiles";
 import { clearSave, loadSave, saveState } from "./utils/save";
 
-type Phase = "title" | "briefing" | "desk" | "feedback" | "debrief";
+type Phase = "title" | "workstation" | "desk" | "feedback" | "debrief";
 
 const emptyKpi = (): Kpi => ({
   csatSum: 0,
@@ -60,6 +60,7 @@ function App() {
   const [trust, setTrust] = useState<Partial<Record<ClientId, number>>>({});
   const [hasSave, setHasSave] = useState(false);
   const [feedback, setFeedback] = useState<{ clientName: string; temperature: number; csatDelta: number; escalated: boolean; reason?: string } | null>(null);
+  const [workstationMessage, setWorkstationMessage] = useState("Добро пожаловать. Открой ноутбук, когда будешь готов — очередь уже ждёт.");
 
   useEffect(() => {
     const s = loadSave();
@@ -132,7 +133,8 @@ function App() {
       trust: Object.fromEntries(Object.entries(clientProfiles).map(([id, profile]) => [id, profile.trust])),
     });
     setHasSave(true);
-    setPhase("briefing");
+    setWorkstationMessage("Добро пожаловать на первую смену. Открой ноутбук, когда будешь готов — очередь уже ждёт.");
+    setPhase("workstation");
   }
 
   function continueSave() {
@@ -158,7 +160,12 @@ function App() {
     const loadedTrust = s.trust ?? Object.fromEntries(Object.entries(clientProfiles).map(([id, profile]) => [id, profile.trust]));
     setTrust(loadedTrust);
     saveState({ ...s, caseStartedAt: loadedStartedAt, trust: loadedTrust });
-    setPhase("desk");
+    if (s.caseIndex >= s.queueOrder.length) {
+      setPhase("debrief");
+    } else {
+      setWorkstationMessage("Продолжаем смену. Ноутбук уже ждёт — открывай CRM, когда будешь готов.");
+      setPhase("workstation");
+    }
   }
 
   function persist(next: Partial<SaveState>) {
@@ -276,6 +283,11 @@ function App() {
     persist({ trust: next });
   }
 
+  function changeDifficulty(nextDifficulty: Difficulty) {
+    setDifficulty(nextDifficulty);
+    persist({ difficulty: nextDifficulty });
+  }
+
   function openChat(index: number) {
     const id = queueOrder[index];
     if (!id || casesDone[id] === "done" || casesDone[id] === "escalated") return;
@@ -293,8 +305,16 @@ function App() {
   if (phase === "title") {
     return <TitleScreen hasSave={hasSave} onStart={startNew} onContinue={continueSave} />;
   }
-  if (phase === "briefing") {
-    return <BriefingScreen nickname={nickname} difficulty={difficulty} onStart={() => openChat(caseIndex)} />;
+  if (phase === "workstation") {
+    return (
+      <WorkstationScreen
+        nickname={nickname}
+        difficulty={difficulty}
+        message={workstationMessage}
+        onOpenLaptop={() => openChat(caseIndex)}
+        onChangeDifficulty={changeDifficulty}
+      />
+    );
   }
   if (phase === "desk") {
     if (!currentCase) {
@@ -335,6 +355,7 @@ function App() {
         onChatHistoryChange={updateChatHistory}
         onTemperatureChange={updateTemperature}
         onTrustChange={updateTrust}
+        onChangeDifficulty={changeDifficulty}
         onFinish={finishCase}
       />
     );
@@ -347,7 +368,12 @@ function App() {
           const nextNotes = [...notes, `${feedback.clientName}: ${note}`];
           setNotes(nextNotes);
           persist({ notes: nextNotes });
-          setPhase(caseIndex >= queueOrder.length ? "debrief" : "desk");
+          if (caseIndex >= queueOrder.length) {
+            setPhase("debrief");
+          } else {
+            setWorkstationMessage("Перерыв между обращениями. Я нашла новую заметку для тебя — когда будешь готов, открывай ноутбук.");
+            setPhase("workstation");
+          }
         }}
       />
     );

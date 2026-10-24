@@ -37,6 +37,7 @@ type Props = {
   onChatHistoryChange: (clientId: ClientId, history: DialogueNode[]) => void;
   onTemperatureChange: (clientId: ClientId, value: number) => void;
   onTrustChange: (clientId: ClientId, value: number) => void;
+  onChangeDifficulty: (difficulty: Difficulty) => void;
   onFinish: (result: {
     tempDelta: number;
     csatDelta: number;
@@ -205,6 +206,7 @@ export function DeskScreen({
   onChatHistoryChange,
   onTemperatureChange,
   onTrustChange,
+  onChangeDifficulty,
   onFinish,
 }: Props) {
   const [nodeId, setNodeId] = useState(caseItem.startNodeId);
@@ -545,7 +547,17 @@ export function DeskScreen({
           <header className={styles.channelHeader}>
             <div>
               <span className={styles.tag}><img className={styles.channelIcon} src={caseItem.channel === "call" ? "/assets/icons/phone.svg" : "/assets/icons/chat.svg"} alt="" />Канал: {caseItem.channel === "call" ? "ЗВОНОК" : "ЧАТ"}</span>
-              <h1>{caseItem.name}</h1>
+              <div className={styles.titleRow}>
+                <h1>{caseItem.name}</h1>
+                <label className={styles.inlineDifficulty}>
+                  <span>Режим</span>
+                  <select value={difficulty} onChange={(event) => onChangeDifficulty(event.target.value as Difficulty)}>
+                    <option value="trainee">Стажёр</option>
+                    <option value="shift">Смена</option>
+                    <option value="peak">Пик</option>
+                  </select>
+                </label>
+              </div>
               <p>{caseItem.intro}</p>
             </div>
             <button className={styles.escalateBtn} onClick={() => setShowEscalate(true)}>
