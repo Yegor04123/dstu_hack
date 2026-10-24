@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { Case, ClientId, Difficulty, Kpi, DialogueNode } from "../types";
 import { Hud } from "../components/Hud";
+import { AILenna } from "../components/AILenna";
 import { knowledgeArticles } from "../data/knowledge";
 import { crmCards } from "../data/crm";
 import styles from "./DeskScreen.module.css";
@@ -196,7 +197,6 @@ export function DeskScreen({
     dialogueEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
 
-  // ИСПРАВЛЕННАЯ логика выбора ответа
   function choose(option: any) {
     const res = {
       tempDelta: option.effects.tempDelta + (diffCfg.tempStartDelta > 0 ? 2 : 0),
@@ -209,8 +209,6 @@ export function DeskScreen({
     };
 
     const nextNode = option.nextNodeId ? caseItem.nodes.find((n) => n.id === option.nextNodeId) : undefined;
-
-    // Всегда показываем реплику игрока
     const agentText = getAgentReply(option.text);
     const agentMessage: DialogueNode = {
       id: `agent-${option.id}`,
@@ -219,7 +217,6 @@ export function DeskScreen({
     };
 
     if (option.nextNodeId && nextNode) {
-      // Проверяем, есть ли у nextNode options (продолжение диалога) или нет (конец)
       const hasNextOptions = nextNode.options && nextNode.options.length > 0;
 
       if (nextNode.speaker === "agent") {
@@ -233,19 +230,16 @@ export function DeskScreen({
         setChatHistory((prev) => [...prev, agentMessage, nextNode]);
       }
 
-      // Если у nextNode есть options — продолжаем диалог
       if (hasNextOptions) {
         setNodeId(option.nextNodeId);
         return;
       }
 
-      // Если у nextNode нет options — это конец диалога
       setNodeId(option.nextNodeId);
       onFinish(res);
       return;
     }
 
-    // Конец диалога (нет nextNodeId)
     setChatHistory((prev) => [...prev, agentMessage]);
     onFinish(res);
   }
@@ -283,12 +277,12 @@ export function DeskScreen({
             ))}
           </ul>
           {diffCfg.queueSpike && <div className={styles.spike}>Пик нагрузки — очередь растёт</div>}
-          <footer>
-            <h3>Курилка</h3>
-            <p>Лена: «Если не уверен — эскалируй. Дыши.»</p>
-            <p>Марк: «Успею!»</p>
-            <p>Юля: «Главное — без ошибок по безопасности.»</p>
-          </footer>
+          
+          {/* 🆕 AI-Лена вместо Курилки */}
+          <AILenna 
+            clientId={caseItem.id as ClientId}
+            difficulty={difficulty}
+          />
         </aside>
         
         <section className={styles.channel}>
@@ -375,7 +369,6 @@ export function DeskScreen({
                       key={a.id} 
                       className={`${styles.article} ${isOpened ? styles.articleOpened : ""}`}
                       onClick={() => onOpenKnowledge(a.id)}
-                      title={isOpened ? "Нажмите, чтобы закрыть" : "Нажмите, чтобы открыть"}
                     >
                       <strong>{a.title}</strong>
                       <span>{a.tags.join(", ")}</span>
