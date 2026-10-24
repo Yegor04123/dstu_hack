@@ -1,4 +1,5 @@
 import { Difficulty } from "../types";
+import { WorkEvent } from "../data/workEvents";
 import styles from "./WorkstationScreen.module.css";
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
   message: string;
   onOpenLaptop: () => void;
   onChangeDifficulty: (difficulty: Difficulty) => void;
+  event: WorkEvent;
 };
 
 const labels: Record<Difficulty, string> = {
@@ -15,7 +17,7 @@ const labels: Record<Difficulty, string> = {
   peak: "Пик нагрузки",
 };
 
-export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop, onChangeDifficulty }: Props) {
+export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop, onChangeDifficulty, event }: Props) {
   return (
     <div className={styles.screen}>
       <div className={styles.windowGlow} />
@@ -64,6 +66,12 @@ export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop,
               <p>{message}</p>
               <button onClick={onOpenLaptop}>Понял, открыть ноутбук →</button>
             </div>
+          </div>
+          <div className={styles.eventCard}>
+            <span>Событие смены</span>
+            <strong>{event.title}</strong>
+            <p>{event.text}</p>
+            <button onClick={onOpenLaptop}>{event.action} →</button>
           </div>
         </section>
 

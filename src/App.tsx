@@ -9,6 +9,7 @@ import { difficultyConfig } from "./data/difficulty";
 import { ClientId, Difficulty, Kpi, SaveState } from "./types";
 import { DialogueNode } from "./types";
 import { clientProfiles } from "./data/clientProfiles";
+import { getWorkEvent } from "./data/workEvents";
 import { clearSave, loadSave, saveState } from "./utils/save";
 
 type Phase = "title" | "workstation" | "desk" | "feedback" | "debrief";
@@ -311,6 +312,7 @@ function App() {
         nickname={nickname}
         difficulty={difficulty}
         message={workstationMessage}
+        event={getWorkEvent(caseIndex + notes.length)}
         onOpenLaptop={() => openChat(caseIndex)}
         onChangeDifficulty={changeDifficulty}
       />

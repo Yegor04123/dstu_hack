@@ -223,6 +223,7 @@ export function DeskScreen({
   const [llmError, setLlmError] = useState(false);
   const [freeMessage, setFreeMessage] = useState("");
   const [aiTurns, setAiTurns] = useState<LocalTurnAssessment[]>([]);
+  const [interrupt, setInterrupt] = useState<string | null>(null);
   const [liveTemperature, setLiveTemperature] = useState(temperature);
   const profile = clientProfiles[caseItem.id];
   const [trust, setTrust] = useState(trustValue ?? profile.trust);
@@ -332,6 +333,17 @@ export function DeskScreen({
     setLlmError(false);
     setAiTurns([]);
   }, [caseItem.id]);
+
+  useEffect(() => {
+    setInterrupt(null);
+    if (difficulty === "trainee") return;
+    const firstAlert = window.setTimeout(() => setInterrupt("Этот посетитель уже звонил несколько раз. Он снова говорит: «Я только уточнить» — очередь ждёт твоего решения."), 10000);
+    const repeatAlerts = window.setInterval(() => setInterrupt("Повторный звонок: знакомый голос снова на линии. Не обещай нового — проверь историю обращения."), 26000);
+    return () => {
+      window.clearTimeout(firstAlert);
+      window.clearInterval(repeatAlerts);
+    };
+  }, [caseItem.id, difficulty]);
 
   useEffect(() => {
     setVisibleQueueCount((count) => Math.max(count, Math.min(queueOrder.length, Math.max(2, caseIndex + 1))));
@@ -564,6 +576,13 @@ export function DeskScreen({
               Эскалировать
             </button>
           </header>
+          {interrupt && (
+            <div className={styles.repeatAlert} role="status">
+              <span>☎ Повторный звонок</span>
+              <p>{interrupt}</p>
+              <button onClick={() => setInterrupt(null)}>Принять к сведению</button>
+            </div>
+          )}
           
           <div className={styles.dialogue}>
             {chatHistory.map((msg, index) => (

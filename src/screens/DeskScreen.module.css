@@ -231,6 +231,8 @@
   font-size: 1.15rem;
 }
 
+.repeatAlert { margin: 12px 24px 0; padding: 12px 14px; border: 1px solid rgba(196,92,38,.45); border-left: 4px solid #c45c26; border-radius: 10px; background: rgba(196,92,38,.08); }.repeatAlert span { color: #a64b25; font-size: .75rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }.repeatAlert p { margin: 5px 0 8px; color: var(--ink, #1a1a1a); }.repeatAlert button { border: 1px solid #c45c26; border-radius: 999px; padding: 6px 10px; background: transparent; color: #a64b25; cursor: pointer; }
+
 .escalateBtn {
   padding: 12px 24px;
   background: white;
