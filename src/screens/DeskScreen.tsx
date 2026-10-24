@@ -189,6 +189,7 @@ export function DeskScreen({
   const [llmAssessment, setLlmAssessment] = useState<LocalTurnAssessment | null>(null);
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmError, setLlmError] = useState(false);
+  const [freeMessage, setFreeMessage] = useState("");
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
 
@@ -265,6 +266,45 @@ export function DeskScreen({
     } finally {
       setLlmLoading(false);
     }
+  }
+
+  async function sendFreeMessage() {
+    const text = freeMessage.trim();
+    if (!text || llmLoading || isFinishing) return;
+    setFreeMessage("");
+    setChatHistory((prev) => [...prev, { id: `free-agent-${Date.now()}`, speaker: "agent", text }]);
+    setLlmLoading(true);
+    setLlmError(false);
+    try {
+      const result = await assessTurn({
+        clientName: caseItem.name,
+        clientIssue: caseItem.intro,
+        clientTemperature: temperature,
+        selectedReply: text,
+        crmFlags: caseItem.crm.flags,
+      });
+      setLlmAssessment(result);
+      setChatHistory((prev) => [...prev, { id: `free-client-${Date.now()}`, speaker: "client", text: result.clientReply }]);
+    } catch {
+      setLlmError(true);
+    } finally {
+      setLlmLoading(false);
+    }
+  }
+
+  function finishFreeCase() {
+    if (!llmAssessment || isFinishing) return;
+    setIsFinishing(true);
+    onFinish({
+      tempDelta: llmAssessment.temperatureDelta,
+      csatDelta: (llmAssessment.score - 3) * 0.45,
+      ahtDelta: 1,
+      complianceDelta: llmAssessment.score >= 4 ? 2 : -2,
+      fcr: llmAssessment.resolved,
+      escalated: false,
+      stressDelta: llmAssessment.score >= 4 ? -2 : 5,
+      reputationDelta: llmAssessment.score >= 4 ? 3 : -2,
+    });
   }
 
   function choose(option: DialogueOption) {
@@ -415,8 +455,7 @@ export function DeskScreen({
               </div>
               {llmAssessment && (
                 <>
-                  <p className="serif">«{llmAssessment.clientReply}»</p>
-                  <div className={styles.llmMeta}>Оценка: {llmAssessment.score}/5 · температура {llmAssessment.temperatureDelta > 0 ? "+" : ""}{llmAssessment.temperatureDelta}</div>
+                  <div className={styles.llmMeta}>Последняя оценка: {llmAssessment.score}/5 · температура {llmAssessment.temperatureDelta > 0 ? "+" : ""}{llmAssessment.temperatureDelta}</div>
                   <small>{llmAssessment.feedback}</small>
                 </>
               )}
@@ -426,15 +465,38 @@ export function DeskScreen({
           )}
 
           <div className={styles.options}>
-            <h2>Выберите ответ</h2>
-            <div className={styles.optionGrid}>
-              {node.options?.map((opt) => (
-                <button key={opt.id} className={styles.option} disabled={isFinishing} onClick={() => choose(opt)}>
-                  <span className={styles.optionTone}>{opt.tone}</span>
-                  <p>{opt.text}</p>
-                </button>
-              ))}
-            </div>
+            {difficulty === "peak" ? (
+              <>
+                <h2>Ваш ответ клиенту</h2>
+                <div className={styles.composer}>
+                  <textarea
+                    value={freeMessage}
+                    onChange={(event) => setFreeMessage(event.target.value)}
+                    onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendFreeMessage(); } }}
+                    placeholder="Напишите клиенту своими словами…"
+                    disabled={llmLoading || isFinishing}
+                    rows={3}
+                  />
+                  <div className={styles.composerActions}>
+                    <small>Enter — отправить · Shift+Enter — новая строка</small>
+                    <button className={styles.cta} disabled={!freeMessage.trim() || llmLoading || isFinishing} onClick={() => void sendFreeMessage()}>Отправить</button>
+                  </div>
+                </div>
+                <button className={styles.finishCase} disabled={!llmAssessment || isFinishing} onClick={finishFreeCase}>Завершить обращение</button>
+              </>
+            ) : (
+              <>
+                <h2>Выберите ответ</h2>
+                <div className={styles.optionGrid}>
+                  {node.options?.map((opt) => (
+                    <button key={opt.id} className={styles.option} disabled={isFinishing} onClick={() => choose(opt)}>
+                      <span className={styles.optionTone}>{opt.tone}</span>
+                      <p>{opt.text}</p>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </section>
 

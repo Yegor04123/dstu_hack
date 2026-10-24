@@ -666,6 +666,13 @@
   }
 }
 
+.composer { display: flex; flex-direction: column; gap: 10px; }
+.composer textarea { width: 100%; resize: vertical; min-height: 76px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--surface); color: var(--ink); font: inherit; }
+.composerActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.composerActions small { color: var(--muted); }
+.finishCase { align-self: flex-start; border: 1px solid var(--line); background: transparent; padding: 9px 16px; border-radius: 999px; cursor: pointer; }
+.finishCase:disabled { opacity: .45; cursor: default; }
+
 .llmPanel {
   margin: 0 24px 16px;
   padding: 14px 16px;
