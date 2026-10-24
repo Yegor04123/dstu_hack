@@ -207,6 +207,10 @@ export function DeskScreen({
   const [liveTemperature, setLiveTemperature] = useState(temperature);
   const profile = clientProfiles[caseItem.id];
   const [trust, setTrust] = useState(profile.trust);
+  const nextIncomingId = difficulty === "peak"
+    ? queueOrder.find((id, index) => index !== caseIndex && casesDone[id] === "pending")
+    : undefined;
+  const promiseWarning = /обещаю|точно будет|гарантирую|сегодня вернется|сейчас закрою/i.test(freeMessage);
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
   const llmLoadingRef = useRef(llmLoading);
@@ -285,6 +289,8 @@ export function DeskScreen({
         selectedReply,
         crmFlags: caseItem.crm.flags,
         history: chatHistory,
+        trust,
+        traits: profile.traits,
       });
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
@@ -312,6 +318,8 @@ export function DeskScreen({
         selectedReply: text,
         crmFlags: caseItem.crm.flags,
         history: [...chatHistory, { speaker: "agent", text }],
+        trust,
+        traits: profile.traits,
       });
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
@@ -443,6 +451,13 @@ export function DeskScreen({
             })}
           </ul>
           {diffCfg.queueSpike && <div className={styles.spike}>Пик нагрузки — очередь растёт</div>}
+          {diffCfg.queueSpike && nextIncomingId && (
+            <div className={styles.incomingAlert}>
+              <strong>Второй входящий</strong>
+              <span>{crmCards[nextIncomingId].name} ждёт ответа</span>
+              <button onClick={() => onSelectClient(queueOrder.indexOf(nextIncomingId))}>Взять обращение</button>
+            </div>
+          )}
           
           {/* 🆕 AI-Лена вместо Курилки */}
           <AILenna 
@@ -518,6 +533,7 @@ export function DeskScreen({
                     <small>Enter — отправить · Shift+Enter — новая строка</small>
                     <button className={styles.cta} disabled={!freeMessage.trim() || llmLoading || isFinishing} onClick={() => void sendFreeMessage()}>Отправить</button>
                   </div>
+                  {promiseWarning && <small className={styles.promiseWarning}>Осторожно: это обещание может нарушать полномочия L1.</small>}
                 </div>
                 <button className={styles.finishCase} disabled={!llmAssessment || isFinishing} onClick={finishFreeCase}>Завершить обращение</button>
               </>

@@ -28,7 +28,7 @@ function extractJson(text: string): LocalTurnAssessment {
 function applySafetyRubric(reply: string, assessment: LocalTurnAssessment): LocalTurnAssessment {
   const normalized = reply.toLowerCase().replace(/ё/g, "е");
   const insultPattern = /\b(идиот|дебил|дурак|туп(ой|ая|ые)|козел|коза|заткнись|отвали|пошел|пошла|ненавижу|чушь|бред)\b/i;
-  const unsafePattern = /(код из sms|код из смс|cvv|cvc|полный номер карты|безопасн(ый|ом) счет|гарантирую возврат|обещаю возврат)/i;
+  const unsafePattern = /(код из sms|код из смс|cvv|cvc|полный номер карты|безопасн(ый|ом) счет|гарантирую возврат|обещаю возврат|гарантирую|обещаю|точно верн|сейчас закрою)/i;
 
   if (insultPattern.test(normalized)) {
     return {
@@ -62,6 +62,8 @@ export async function assessTurn(input: {
   selectedReply: string;
   crmFlags: string[];
   history?: Array<{ speaker: string; text: string }>;
+  trust?: number;
+  traits?: string[];
 }): Promise<LocalTurnAssessment> {
   const transcript = (input.history ?? []).slice(-10).map((message) => `${message.speaker}: ${message.text}`).join("\n");
   const prompt = `Ты — реалистичный клиент банка и строгий наставник оператора.
@@ -72,6 +74,8 @@ export async function assessTurn(input: {
 Проблема: ${input.clientIssue}
 Температура до ответа: ${input.clientTemperature}/100
 Флаги CRM: ${input.crmFlags.join(", ") || "нет"}
+Доверие клиента: ${input.trust ?? 50}/100
+Особенности клиента: ${input.traits?.join(", ") || "нет данных"}
 История разговора:
 ${transcript || "начало разговора"}
 Оператор сейчас пишет: ${input.selectedReply}

@@ -385,6 +385,10 @@
   overscroll-behavior: contain;
 }
 
+.incomingAlert { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid rgba(196, 92, 38, .45); border-radius: 10px; background: rgba(196, 92, 38, .08); color: var(--ink, #1c2430); }
+.incomingAlert span { color: var(--muted, #5c6675); font-size: .9rem; }
+.incomingAlert button { align-self: flex-start; border: 1px solid var(--accent, #c45c26); background: transparent; color: var(--accent, #c45c26); border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+
 .panel header {
   display: flex;
   justify-content: space-between;
@@ -731,6 +735,7 @@
 .composer textarea { width: 100%; resize: vertical; min-height: 76px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--surface); color: var(--ink); font: inherit; }
 .composerActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .composerActions small { color: var(--muted); }
+.promiseWarning { display: block; color: var(--hot, #b3261e); margin-top: 8px; }
 .finishCase { align-self: flex-start; border: 1px solid var(--line); background: transparent; padding: 9px 16px; border-radius: 999px; cursor: pointer; }
 .finishCase:disabled { opacity: .45; cursor: default; }
 
