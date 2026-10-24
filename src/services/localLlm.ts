@@ -56,9 +56,9 @@ resolved=true ставь только если проблема реально �
         { role: "system", content: "Ты модуль оценки диалогов контакт-центра." },
         { role: "user", content: prompt },
       ],
-      options: { temperature: 0.35 },
+      options: { temperature: 0.35, num_predict: 160 },
     }),
-    signal: AbortSignal.timeout(9000),
+    signal: AbortSignal.timeout(60000),
   });
   if (!response.ok) throw new Error(`Ollama: ${response.status}`);
   const data = (await response.json()) as { message?: { content?: string } };
