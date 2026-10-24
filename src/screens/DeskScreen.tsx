@@ -224,6 +224,7 @@ export function DeskScreen({
   const [freeMessage, setFreeMessage] = useState("");
   const [aiTurns, setAiTurns] = useState<LocalTurnAssessment[]>([]);
   const [interrupt, setInterrupt] = useState<string | null>(null);
+  const [catVisible, setCatVisible] = useState(false);
   const [liveTemperature, setLiveTemperature] = useState(temperature);
   const profile = clientProfiles[caseItem.id];
   const [trust, setTrust] = useState(trustValue ?? profile.trust);
@@ -344,6 +345,13 @@ export function DeskScreen({
       window.clearInterval(repeatAlerts);
     };
   }, [caseItem.id, difficulty]);
+
+  useEffect(() => {
+    setCatVisible(false);
+    if (difficulty === "trainee" || caseIndex % 3 !== 1) return;
+    const timer = window.setTimeout(() => setCatVisible(true), 16000);
+    return () => window.clearTimeout(timer);
+  }, [caseItem.id, caseIndex, difficulty]);
 
   useEffect(() => {
     setVisibleQueueCount((count) => Math.max(count, Math.min(queueOrder.length, Math.max(2, caseIndex + 1))));
@@ -583,6 +591,7 @@ export function DeskScreen({
               <button onClick={() => setInterrupt(null)}>Принять к сведению</button>
             </div>
           )}
+          {catVisible && <div className={styles.catRun} aria-label="Кот пробежал по клавиатуре">🐈</div>}
           
           <div className={styles.dialogue}>
             {chatHistory.map((msg, index) => (

@@ -27,6 +27,8 @@ export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop,
     return () => window.clearTimeout(timer);
   }, [event.id]);
 
+  const catVisible = eventVisible && event.id === "cat-keyboard";
+
   return (
     <div className={styles.screen}>
       <div className={styles.windowGlow} />
@@ -84,6 +86,7 @@ export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop,
               <button onClick={onOpenLaptop}>{event.action} →</button>
             </div>
           )}
+          {catVisible && <div className={styles.catRun} aria-label="Кот пробежал по столу">🐈</div>}
         </section>
 
         <footer className={styles.footer}>
