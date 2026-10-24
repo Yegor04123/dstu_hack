@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Case, ClientId, Difficulty, Kpi } from "../types";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Case, ClientId, Difficulty, Kpi, DialogueNode } from "../types"; // 🆕 Добавлен DialogueNode
 import { Hud } from "../components/Hud";
 import { knowledgeArticles } from "../data/knowledge";
 import { crmCards } from "../data/crm";
@@ -53,13 +53,32 @@ export function DeskScreen({
   const [showEscalate, setShowEscalate] = useState(false);
   const [escalateReason, setEscalateReason] = useState("");
 
+  // 🆕 Состояние для истории чата
+  const [chatHistory, setChatHistory] = useState<DialogueNode[]>([]);
+  
+  // 🆕 Ref для автоматической прокрутки вниз
+  const dialogueEndRef = useRef<HTMLDivElement>(null);
+
   const node = useMemo(() => caseItem.nodes.find((n) => n.id === nodeId) ?? caseItem.nodes[0], [caseItem, nodeId]);
   const crm = crmCards[caseItem.id];
+  
   const articles = useMemo(() => {
     const q = kbQuery.toLowerCase();
     if (!q) return knowledgeArticles;
     return knowledgeArticles.filter((a) => a.title.toLowerCase().includes(q) || a.tags.some((t) => t.includes(q)));
   }, [kbQuery]);
+
+  // 🆕 Сброс истории чата при смене клиента
+  useEffect(() => {
+    const startNode = caseItem.nodes.find((n) => n.id === caseItem.startNodeId) ?? caseItem.nodes[0];
+    setChatHistory([startNode]);
+    setNodeId(caseItem.startNodeId);
+  }, [caseItem]);
+
+  // 🆕 Автопрокрутка вниз при добавлении новых сообщений
+  useEffect(() => {
+    dialogueEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory]);
 
   function choose(option: any) {
     const res = {
@@ -71,11 +90,29 @@ export function DeskScreen({
       escalated: option.effects.escalate ?? false,
       reason: option.effects.escalateReason,
     };
+
+    // 🆕 СОЗДАЕМ сообщение агента (ваш выбранный ответ)
+    const agentMessage: DialogueNode = {
+      id: `agent-${option.id}`,
+      speaker: "agent",
+      text: option.text,
+    };
+
     if (option.nextNodeId) {
+      const nextNode = caseItem.nodes.find((n) => n.id === option.nextNodeId);
+      if (nextNode) {
+        // Добавляем в историю: сначала ваш ответ, потом ответ клиента
+        setChatHistory((prev) => [...prev, agentMessage, nextNode]);
+      } else {
+        setChatHistory((prev) => [...prev, agentMessage]);
+      }
       setNodeId(option.nextNodeId);
       // don't finish, continue dialogue
       return;
     }
+
+    // Если это конец диалога, всё равно добавляем ваше последнее сообщение перед завершением
+    setChatHistory((prev) => [...prev, agentMessage]);
     onFinish(res);
   }
 
@@ -119,6 +156,7 @@ export function DeskScreen({
             <p>Юля: «Главное — без ошибок по безопасности.»</p>
           </footer>
         </aside>
+        
         <section className={styles.channel}>
           <header className={styles.channelHeader}>
             <div>
@@ -130,12 +168,24 @@ export function DeskScreen({
               Эскалировать
             </button>
           </header>
+          
+          {/* 🆕 Рендеринг ВСЕЙ истории чата */}
           <div className={styles.dialogue}>
-            <div className={`${styles.message} ${node.speaker === "client" ? styles.client : styles.agent}`}>
-              <span className={styles.speaker}>{node.speaker === "client" ? caseItem.name : "Вы"}</span>
-              <p className="serif">{node.text}</p>
-            </div>
+            {chatHistory.map((msg, index) => (
+              <div 
+                key={`${msg.id}-${index}`} 
+                className={`${styles.message} ${msg.speaker === "client" ? styles.client : styles.agent}`}
+              >
+                <span className={styles.speaker}>
+                  {msg.speaker === "client" ? caseItem.name : msg.speaker === "agent" ? "Вы" : msg.speaker}
+                </span>
+                <p className="serif">{msg.text}</p>
+              </div>
+            ))}
+            {/* Невидимый элемент для прокрутки */}
+            <div ref={dialogueEndRef} />
           </div>
+
           <div className={styles.options}>
             <h2>Выберите ответ</h2>
             <div className={styles.optionGrid}>
@@ -148,6 +198,7 @@ export function DeskScreen({
             </div>
           </div>
         </section>
+
         <aside className={styles.tools}>
           <div className={styles.tabs}>
             <button className={tab === "crm" ? styles.activeTab : ""} onClick={() => setTab("crm")}>
