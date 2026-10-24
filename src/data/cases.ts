@@ -340,7 +340,7 @@ export const cases: Record<ClientId, Case> = {
         options: [
           {
             id: "c4_ok",
-            text: "Уважить выбор, заблокировать временно и объясить процедуру закрытия.",
+            text: "Уважать выбор, заблокировать временно и объясить процедуру закрытия.",
             tone: "empathy",
             effects: { tempDelta: -14, csatDelta: 0.6, ahtDelta: 1, complianceDelta: 6, fcr: false },
           },

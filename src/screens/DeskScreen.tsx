@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { Case, ClientId, Difficulty, Kpi, DialogueNode } from "../types"; // 🆕 Добавлен DialogueNode
+import { Case, ClientId, Difficulty, Kpi, DialogueNode } from "../types";
 import { Hud } from "../components/Hud";
 import { knowledgeArticles } from "../data/knowledge";
 import { crmCards } from "../data/crm";
@@ -34,6 +34,113 @@ type Props = {
   }) => void;
 };
 
+//  УМНЫЙ СЛОВАРЬ ЗАМЕН для превращения инструкций в реплики
+const replyDictionary: Record<string, string> = {
+  // c1 - Игорь Н.
+  "Признать эмоцию и уточнить, по какой именно операции речь.": "Я понимаю ваше возмущение. Давайте уточним, по какой именно операции речь?",
+  "Сказать: «В соответствии с тарифом комиссия предусмотрена».": "В соответствии с тарифом, данная комиссия предусмотрена условиями обслуживания.",
+  "Сразу попросить эскалировать без проверки.": "Я передам ваш вопрос старшему специалисту для проверки.",
+  "Проверить операцию в CRM и сверить с тарифом.": "Сейчас я проверю операцию в системе и сверю с тарифом.",
+  "Использовать базу знаний «Комиссии» и корректно объяснить + зафиксировать претензию.": "Согласно нашей базе знаний, комиссия списана в соответствии с тарифом. Я зафиксирую вашу претензию и направлю на рассмотрение.",
+  "Обещать, что комиссия точно вернётся сегодня.": "Я обещаю, что комиссия вернётся сегодня.",
+  "Признать эмоцию, успокоить и предложить проверить операцию.": "Понимаю ваше возмущение. Давайте я проверю операцию и разберусь в ситуации.",
+  "Повторить фразу по тарифу ещё раз.": "Согласно тарифу, комиссия предусмотрена условиями обслуживания.",
+  "Зафиксировать претензию, объяснить эскалацию и попрощаться корректно.": "Я зафиксирую вашу претензию и передам её на рассмотрение. Спасибо за обращение.",
+  "Завершить с фиксацией жалобы.": "Я зафиксирую вашу жалобу. Всего доброго.",
+  
+  // c2 - Марина К.
+  "Успокоить, уточнить ошибку/сообщение.": "Понимаю, что ситуация срочная. Какое сообщение об ошибке вы видите?",
+  "Советовать переустановить приложение.": "Попробуйте переустановить приложение.",
+  "Проверить лимиты и статус в CRM.": "Сейчас проверю лимиты и статус операции в системе.",
+  "Использовать «Переводы», объяснить причину и следующий шаг.": "Согласно нашей базе знаний, перевод отклонён из-за лимита. Давайте увеличим лимит и повторим операцию.",
+  "Указать что-то гадательное без проверки.": "К сожалению, без проверки в системе я не могу дать точный ответ.",
+  "Перейти к проверке в системе, признать ошибку совета.": "Прошу прощения за неверный совет. Сейчас проверю в системе.",
+  
+  // c3 - Пётр С.
+  "Успокоить, объяснить стоп-правила и не запрашивать коды.": "Вы правильно не стали переводить деньги. Запомните: банк никогда не запрашивает коды из SMS.",
+  "Попросить назвать код из SMS для проверки.": "Назовите, пожалуйста, код из SMS для проверки.",
+  "Сказать: «Переведите, это безопасно»": "Переведите деньги, это безопасно.",
+  "Зафиксировать инцидент, дать краткие рекомендации, завершить.": "Я зафиксирую этот инцидент и направлю информацию в службу безопасности. Будьте бдительны!",
+  "Срочно остановить разговор по инструкции и зафиксировать критичную ошибку.": "Пожалуйста, не совершайте никаких переводов! Это мошенники. Я зафиксирую инцидент.",
+  
+  // c4 - Алина Т.
+  "Уточнить причину и предложить временную блокировку.": "Подскажите, пожалуйста, причину? Я могу предложить временную блокировку карты.",
+  "Сразу закрыть карту.": "Хорошо, я закрою вашу карту прямо сейчас.",
+  "Проинформировать о процедуре и направить по регламенту.": "Процедура закрытия карты занимает до 30 дней. Я направлю вас по регламенту.",
+  "Уважать выбор, заблокировать временно и объяснить процедуру закрытия.": "Я уважаю ваше решение. Карту можно заблокировать временно, а процедура полного закрытия занимает до 30 дней.",
+  "Уговорить не закрывать карту.": "Может быть, стоит reconsider? У карты есть полезные функции.",
+  "Корректно завершить, зафиксировать обращение.": "Я зафиксирую ваше обращение. Всего доброго!",
+  
+  // c5 - ООО «ЮгТрейд»
+  "Собрать реквизиты: дата, сумма, ИНН получателя, назначение.": "Для проверки мне нужны реквизиты: дата, сумма, ИНН получателя и назначение платежа.",
+  "Уверенно сказать: «Платёж ушёл, всё в порядке».": "Платёж ушёл, всё в порядке.",
+  "Сверить статус платежа в CRM.": "Сейчас сверю статус платежа в системе.",
+  "Сделать корректную эскалацию с фактами.": "Я передам ваш вопрос в платёжный стол с полным описанием ситуации.",
+  "Попытаться сам исправить назначение платежа.": "Я попробую исправить назначение платежа.",
+  "Корректно зафиксировать и эскалировать.": "Я зафиксирую обращение и передам в платёжный стол.",
+  
+  // c6 - Дарья М.
+  "Признать эмоцию, не оправдываться, уточнить факты.": "Понимаю, что ситуация неприятная. Расскажите, пожалуйста, что именно произошло?",
+  "Сказать: «У нас все в polite», оправдываться.": "У нас все операторы вежливые. Возможно, вы неправильно поняли.",
+  "Сразу зафиксировать жалобу по регламенту": "Я зафиксирую вашу жалобу по регламенту.",
+  "Зафиксировать факты и направить на контроль качества.": "Я зафиксирую все факты и направлю их на контроль качества.",
+  "Сократить фиксацию, торопить клиента.": "Давайте быстрее, у меня мало времени.",
+  "Корректно зафиксировать претензию.": "Я зафиксирую вашу претензию. Всего доброго.",
+  
+  // c7 - Андрей В.
+  "Определить зону и корректно перевести с объяснением.": "Ваш вопрос находится вне зоны моей компетенции. Я корректно переведу вас к нужному специалисту.",
+  "Попробовать ответить, хотя не уверен.": "Я постараюсь ответить, хотя не уверен в точности.",
+  "Сказать «не знаю» и бросить перевод.": "К сожалению, я не знаю. До свидания.",
+  "Корректная маршрутизация с объяснением клиенту.": "Я направлю вас к нужному специалисту с полным описанием вопроса.",
+  "Перейти к корректной маршрутизации.": "Сейчас я направлю вас к нужному специалисту.",
+};
+
+// 🆕 Функция для получения корректной реплики
+function getAgentReply(optionText: string, nextNode: DialogueNode | undefined): string {
+  // 1. Если есть точное совпадение в словаре — используем его
+  if (replyDictionary[optionText]) {
+    return replyDictionary[optionText];
+  }
+  
+  // 2. Если следующий узел — агент, берём его текст
+  if (nextNode && nextNode.speaker === "agent") {
+    return nextNode.text.replace(/^\(.*?\)\s*/i, '').trim();
+  }
+  
+  // 3. Иначе пытаемся очистить текст от инструкций
+  let cleaned = optionText;
+  
+  // Удаляем мета-комментарии
+  cleaned = cleaned.replace(/^\s*\(.*?\)\s*/i, '');
+  
+  // Удаляем префиксы
+  const prefixes = [
+    /^(сказать|ответить|уточнить|написать|спросить|предложить|объяснить|попросить|сообщить|успокоить|идентифицировать)\s*[:\-—–]?\s*[«""]?/i,
+    /^(признать эмоцию[,\s]*и?)\s*/i,
+    /^(проверить|использовать|обещать|зафиксировать|попробовать|советовать|определить|собрать|сверить|сделать|перейти|корректно|уверенно|сразу)\s*/i,
+  ];
+  
+  for (const prefix of prefixes) {
+    if (prefix.test(cleaned)) {
+      cleaned = cleaned.replace(prefix, '');
+      break;
+    }
+  }
+  
+  // Удаляем кавычки
+  cleaned = cleaned.replace(/^[«""]+|[«""]+$/g, '');
+  
+  // Удаляем хвосты
+  cleaned = cleaned.replace(/,\s*(оправдываться|торопить клиента|без проверки)\.?$/i, '');
+  
+  // Делаем первую букву заглавной
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  
+  return cleaned.trim();
+}
+
 export function DeskScreen({
   nickname,
   difficulty,
@@ -53,10 +160,7 @@ export function DeskScreen({
   const [showEscalate, setShowEscalate] = useState(false);
   const [escalateReason, setEscalateReason] = useState("");
 
-  // 🆕 Состояние для истории чата
   const [chatHistory, setChatHistory] = useState<DialogueNode[]>([]);
-  
-  // 🆕 Ref для автоматической прокрутки вниз
   const dialogueEndRef = useRef<HTMLDivElement>(null);
 
   const node = useMemo(() => caseItem.nodes.find((n) => n.id === nodeId) ?? caseItem.nodes[0], [caseItem, nodeId]);
@@ -68,14 +172,12 @@ export function DeskScreen({
     return knowledgeArticles.filter((a) => a.title.toLowerCase().includes(q) || a.tags.some((t) => t.includes(q)));
   }, [kbQuery]);
 
-  // 🆕 Сброс истории чата при смене клиента
   useEffect(() => {
     const startNode = caseItem.nodes.find((n) => n.id === caseItem.startNodeId) ?? caseItem.nodes[0];
     setChatHistory([startNode]);
     setNodeId(caseItem.startNodeId);
   }, [caseItem]);
 
-  // 🆕 Автопрокрутка вниз при добавлении новых сообщений
   useEffect(() => {
     dialogueEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
@@ -91,27 +193,27 @@ export function DeskScreen({
       reason: option.effects.escalateReason,
     };
 
-    // 🆕 СОЗДАЕМ сообщение агента (ваш выбранный ответ)
+    const nextNode = option.nextNodeId ? caseItem.nodes.find((n) => n.id === option.nextNodeId) : undefined;
+    
+    // 🆕 Получаем корректную реплику
+    const agentText = getAgentReply(option.text, nextNode);
+
     const agentMessage: DialogueNode = {
       id: `agent-${option.id}`,
       speaker: "agent",
-      text: option.text,
+      text: agentText,
     };
 
-    if (option.nextNodeId) {
-      const nextNode = caseItem.nodes.find((n) => n.id === option.nextNodeId);
-      if (nextNode) {
-        // Добавляем в историю: сначала ваш ответ, потом ответ клиента
-        setChatHistory((prev) => [...prev, agentMessage, nextNode]);
-      } else {
+    if (option.nextNodeId && nextNode) {
+      if (nextNode.speaker === "agent") {
         setChatHistory((prev) => [...prev, agentMessage]);
+      } else {
+        setChatHistory((prev) => [...prev, agentMessage, nextNode]);
       }
       setNodeId(option.nextNodeId);
-      // don't finish, continue dialogue
       return;
     }
 
-    // Если это конец диалога, всё равно добавляем ваше последнее сообщение перед завершением
     setChatHistory((prev) => [...prev, agentMessage]);
     onFinish(res);
   }
@@ -169,7 +271,6 @@ export function DeskScreen({
             </button>
           </header>
           
-          {/* 🆕 Рендеринг ВСЕЙ истории чата */}
           <div className={styles.dialogue}>
             {chatHistory.map((msg, index) => (
               <div 
@@ -182,7 +283,6 @@ export function DeskScreen({
                 <p className="serif">{msg.text}</p>
               </div>
             ))}
-            {/* Невидимый элемент для прокрутки */}
             <div ref={dialogueEndRef} />
           </div>
 
@@ -201,15 +301,9 @@ export function DeskScreen({
 
         <aside className={styles.tools}>
           <div className={styles.tabs}>
-            <button className={tab === "crm" ? styles.activeTab : ""} onClick={() => setTab("crm")}>
-              CRM
-            </button>
-            <button className={tab === "kb" ? styles.activeTab : ""} onClick={() => setTab("kb")}>
-              База знаний
-            </button>
-            <button className={tab === "script" ? styles.activeTab : ""} onClick={() => setTab("script")}>
-              Скрипт
-            </button>
+            <button className={tab === "crm" ? styles.activeTab : ""} onClick={() => setTab("crm")}>CRM</button>
+            <button className={tab === "kb" ? styles.activeTab : ""} onClick={() => setTab("kb")}>База знаний</button>
+            <button className={tab === "script" ? styles.activeTab : ""} onClick={() => setTab("script")}>Скрипт</button>
           </div>
           {tab === "crm" && (
             <div className={styles.panel}>
@@ -219,27 +313,15 @@ export function DeskScreen({
               </header>
               <section>
                 <h3>Продукты</h3>
-                <ul>
-                  {crm.products.map((p) => (
-                    <li key={p}>{p}</li>
-                  ))}
-                </ul>
+                <ul>{crm.products.map((p) => <li key={p}>{p}</li>)}</ul>
               </section>
               <section>
                 <h3>Последние операции</h3>
-                <ul>
-                  {crm.lastOps.map((p) => (
-                    <li key={p}>{p}</li>
-                  ))}
-                </ul>
+                <ul>{crm.lastOps.map((p) => <li key={p}>{p}</li>)}</ul>
               </section>
               <section>
                 <h3>Флаги</h3>
-                <div className={styles.flags}>
-                  {crm.flags.map((p) => (
-                    <span key={p}>{p}</span>
-                  ))}
-                </div>
+                <div className={styles.flags}>{crm.flags.map((p) => <span key={p}>{p}</span>)}</div>
               </section>
               <section>
                 <h3>Заметки</h3>
@@ -265,18 +347,14 @@ export function DeskScreen({
               {openedKnowledge.length > 0 && (
                 <div className={styles.articleDetail}>
                   <h3>{knowledgeArticles.find((a) => openedKnowledge.includes(a.id))?.title}</h3>
-                  <p className={styles.template}>
-                    {knowledgeArticles.find((a) => openedKnowledge.includes(a.id))?.template}
-                  </p>
+                  <p className={styles.template}>{knowledgeArticles.find((a) => openedKnowledge.includes(a.id))?.template}</p>
                 </div>
               )}
             </div>
           )}
           {tab === "script" && (
             <div className={styles.panel}>
-              <header>
-                <h2>Скрипт линии</h2>
-              </header>
+              <header><h2>Скрипт линии</h2></header>
               <ol className={styles.script}>
                 <li>Идентификация по регламенту</li>
                 <li>Уточнение проблемы и фактов</li>
@@ -308,12 +386,8 @@ export function DeskScreen({
               <input value={escalateReason} onChange={(e) => setEscalateReason(e.target.value)} placeholder="Своя причина" />
             </div>
             <footer>
-              <button className={styles.ghost} onClick={() => setShowEscalate(false)}>
-                Отмена
-              </button>
-              <button className={styles.cta} onClick={doEscalate} disabled={!escalateReason}>
-                Эскалировать
-              </button>
+              <button className={styles.ghost} onClick={() => setShowEscalate(false)}>Отмена</button>
+              <button className={styles.cta} onClick={doEscalate} disabled={!escalateReason}>Эскалировать</button>
             </footer>
           </div>
         </div>
