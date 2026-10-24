@@ -66,15 +66,56 @@
   opacity: 0.6;
 }
 
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--teal, #0f6b6b);
-  flex-shrink: 0;
+.clientItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.queue li div {
+.clientItem:disabled {
+  cursor: default;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  background: var(--teal-soft, #d7eeee);
+  color: var(--teal, #0f6b6b);
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.queue li .avatar {
+  color: var(--teal, #0f6b6b);
+  font-size: .82rem;
+}
+
+.active .avatar {
+  background: var(--teal, #0f6b6b);
+  color: var(--surface, #fffdf8);
+}
+
+.queue li.active .avatar {
+  color: var(--surface, #fffdf8);
+}
+
+.done .avatar {
+  background: var(--bg-deep, #e7e1d4);
+  color: var(--muted, #5c6675);
+}
+
+.clientInfo {
   flex: 1;
   min-width: 0;
 }

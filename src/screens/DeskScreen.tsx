@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { Case, ClientId, Difficulty, Kpi, DialogueNode, DialogueOption } from "../types";
+import { Case, CaseStatus, ClientId, Difficulty, Kpi, DialogueNode, DialogueOption } from "../types";
 import { Hud } from "../components/Hud";
 import { AILenna } from "../components/AILenna";
 import { knowledgeArticles } from "../data/knowledge";
@@ -25,6 +25,8 @@ type Props = {
   kpi: Kpi;
   openedKnowledge: string[];
   onOpenKnowledge: (id: string) => void;
+  casesDone: Record<ClientId, CaseStatus>;
+  onSelectClient: (index: number) => void;
   onFinish: (result: {
     tempDelta: number;
     csatDelta: number;
@@ -171,6 +173,8 @@ export function DeskScreen({
   kpi,
   openedKnowledge,
   onOpenKnowledge,
+  casesDone,
+  onSelectClient,
   onFinish,
 }: Props) {
   const [nodeId, setNodeId] = useState(caseItem.startNodeId);
@@ -260,6 +264,13 @@ export function DeskScreen({
       text: agentText,
     };
 
+    const appendMessages = (messages: DialogueNode[]) => {
+      setChatHistory((prev) => {
+        const known = new Set(prev.map((message) => message.id));
+        return [...prev, ...messages.filter((message) => !known.has(message.id))];
+      });
+    };
+
     if (option.nextNodeId && nextNode) {
       const hasNextOptions = nextNode.options && nextNode.options.length > 0;
 
@@ -269,9 +280,9 @@ export function DeskScreen({
           ...nextNode,
           text: nextAgentText,
         };
-        setChatHistory((prev) => [...prev, agentMessage, nextAgentMessage]);
-      } else {
-        setChatHistory((prev) => [...prev, agentMessage, nextNode]);
+          appendMessages([agentMessage, nextAgentMessage]);
+        } else {
+          appendMessages([agentMessage, nextNode]);
       }
 
       if (hasNextOptions) {
@@ -285,7 +296,7 @@ export function DeskScreen({
       return;
     }
 
-    setChatHistory((prev) => [...prev, agentMessage]);
+    appendMessages([agentMessage]);
     onFinish(res);
   }
 
@@ -313,15 +324,22 @@ export function DeskScreen({
             <h2>Очередь</h2>
           </header>
           <ul>
-            {queueOrder.map((id, idx) => (
-              <li key={id} className={idx === caseIndex ? styles.active : idx < caseIndex ? styles.done : ""}>
-                <span className={styles.dot} />
-                <div>
-                  <strong>{caseItem.id === id ? caseItem.name : crmCards[id].name.split(",")[0]}</strong>
-                  <span>{caseItem.id === id ? caseItem.channel === "call" ? "Звонок" : "Чат" : "Ожидание"}</span>
-                </div>
-              </li>
-            ))}
+            {queueOrder.map((id, idx) => {
+              const client = crmCards[id];
+              const closed = casesDone[id] === "done" || casesDone[id] === "escalated";
+              const initials = client.name.replace(/[«»]/g, "").split(/[ .,]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
+              return (
+                <li key={id} className={`${idx === caseIndex ? styles.active : ""} ${closed ? styles.done : ""}`}>
+                  <button className={styles.clientItem} disabled={closed} onClick={() => onSelectClient(idx)} aria-label={`Открыть обращение ${client.name}`}>
+                    <span className={styles.avatar}>{initials}</span>
+                    <span className={styles.clientInfo}>
+                      <strong>{client.name.split(",")[0]}</strong>
+                      <span>{closed ? "Закрыто" : idx === caseIndex ? (caseItem.channel === "call" ? "Звонок" : "Чат") : "Ожидание"}</span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
           {diffCfg.queueSpike && <div className={styles.spike}>Пик нагрузки — очередь растёт</div>}
           

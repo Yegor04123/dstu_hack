@@ -234,6 +234,14 @@ function App() {
     persist({ openedKnowledge: next });
   }
 
+  function selectClient(index: number) {
+    const id = queueOrder[index];
+    if (!id || casesDone[id] === "done" || casesDone[id] === "escalated") return;
+    setCaseIndex(index);
+    persist({ caseIndex: index });
+    setPhase("desk");
+  }
+
   if (phase === "title") {
     return <TitleScreen hasSave={hasSave} onStart={startNew} onContinue={continueSave} />;
   }
@@ -270,6 +278,8 @@ function App() {
         kpi={kpi}
         openedKnowledge={openedKnowledge}
         onOpenKnowledge={openKnowledge}
+        casesDone={casesDone}
+        onSelectClient={selectClient}
         onFinish={finishCase}
       />
     );
