@@ -21,16 +21,18 @@ function isSaveState(value: unknown): value is SaveState {
   if (!value || typeof value !== "object") return false;
   const s = value as Partial<SaveState>;
   const difficulties: Difficulty[] = ["trainee", "shift", "peak"];
-  const ids: ClientId[] = ["c1", "c2", "c3", "c4", "c5", "c6", "c7"];
+  const ids: ClientId[] = ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"];
   const kpi = s.kpi;
   if (!difficulties.includes(s.difficulty as Difficulty)) return false;
-  if (!Number.isInteger(s.caseIndex) || (s.caseIndex ?? -1) < 0 || (s.caseIndex ?? 8) > ids.length) return false;
-  if (!Array.isArray(s.queueOrder) || s.queueOrder.length !== ids.length || !s.queueOrder.every((id) => ids.includes(id))) return false;
+  if (!Number.isInteger(s.caseIndex) || (s.caseIndex ?? -1) < 0 || (s.caseIndex ?? 9) > ids.length) return false;
+  if (!Array.isArray(s.queueOrder) || (s.queueOrder.length !== 7 && s.queueOrder.length !== 8) || !s.queueOrder.every((id) => ids.includes(id))) return false;
   if (!kpi || typeof kpi !== "object") return false;
   if (!["csatSum", "csatCount", "ahtSum", "ahtCount", "fcrResolved", "fcrTotal", "compliance"].every((key) => typeof kpi[key as keyof typeof kpi] === "number")) return false;
-  if (!s.cases || !ids.every((id) => ["pending", "active", "done", "escalated"].includes(s.cases?.[id] ?? ""))) return false;
-  if (!s.temperature || !ids.every((id) => typeof s.temperature?.[id] === "number")) return false;
-  return typeof s.nickname === "string" && Array.isArray(s.openedKnowledge) && Array.isArray(s.notes);
+  const baseIds = ids.slice(0, 7);
+  if (!s.cases || !baseIds.every((id) => ["pending", "active", "done", "escalated"].includes(s.cases?.[id] ?? ""))) return false;
+  if (!s.temperature || !baseIds.every((id) => typeof s.temperature?.[id] === "number")) return false;
+  return typeof s.nickname === "string" && Array.isArray(s.openedKnowledge) && Array.isArray(s.notes)
+    && typeof s.stress === "number" && typeof s.reputation === "number" && Array.isArray(s.achievements);
 }
 
 export function saveState(state: SaveState) {

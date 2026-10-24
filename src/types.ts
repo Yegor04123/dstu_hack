@@ -2,7 +2,7 @@ export type Channel = "call" | "chat";
 
 export type Difficulty = "trainee" | "shift" | "peak";
 
-export type ClientId = "c1" | "c2" | "c3" | "c4" | "c5" | "c6" | "c7";
+export type ClientId = "c1" | "c2" | "c3" | "c4" | "c5" | "c6" | "c7" | "c8";
 
 export type CaseStatus = "pending" | "active" | "done" | "escalated";
 
@@ -27,6 +27,9 @@ export type SaveState = {
   temperature: Record<ClientId, number>;
   openedKnowledge: string[];
   notes: string[];
+  stress: number;
+  reputation: number;
+  achievements: string[];
 };
 
 export type CaseStatuses = Record<ClientId, CaseStatus>;

@@ -7,6 +7,10 @@ type Props = {
   kpi: Kpi;
   casesDone: Record<ClientId, "pending" | "active" | "done" | "escalated">;
   notes: string[];
+  stress: number;
+  reputation: number;
+  achievements: string[];
+  caseTotal: number;
   onRestart: () => void;
 };
 
@@ -20,7 +24,13 @@ function avgAht(k: Kpi) {
   return k.ahtSum / k.ahtCount;
 }
 
-export function DebriefScreen({ nickname, difficulty, kpi, casesDone, notes, onRestart }: Props) {
+const achievementLabels: Record<string, string> = {
+  "fraud-sensor": "Поймал фрод",
+  "safe-shift": "Безопасная смена",
+  "clean-escalation": "Эскалировал по делу",
+};
+
+export function DebriefScreen({ nickname, difficulty, kpi, casesDone, notes, stress, reputation, achievements, caseTotal, onRestart }: Props) {
   const csat = avgCsat(kpi);
   const aht = avgAht(kpi);
   const fcr = kpi.fcrTotal === 0 ? 0 : Math.round((kpi.fcrResolved / kpi.fcrTotal) * 100);
@@ -63,12 +73,16 @@ export function DebriefScreen({ nickname, difficulty, kpi, casesDone, notes, onR
               </div>
               <div>
                 <span>Обработано обращений</span>
-                <strong>{doneCount} / 7</strong>
+                <strong>{doneCount} / {caseTotal}</strong>
               </div>
             </div>
             <div className={styles.profile}>
               <span>Профиль оператора</span>
               <strong>{profile}</strong>
+            </div>
+            <div className={styles.profile}>
+              <span>Состояние и репутация</span>
+              <strong>Стресс {stress}% · Репутация {reputation >= 0 ? "+" : ""}{reputation}</strong>
             </div>
           </div>
           <div className={styles.panel}>
@@ -90,6 +104,10 @@ export function DebriefScreen({ nickname, difficulty, kpi, casesDone, notes, onR
                 </ul>
               </>
             )}
+            <h3>Достижения</h3>
+            <ul className={styles.notes}>
+              {achievements.length > 0 ? achievements.map((a) => <li key={a}>{achievementLabels[a] ?? a}</li>) : <li>Смена ещё формирует твой профиль.</li>}
+            </ul>
           </div>
         </section>
         <footer className={styles.footer}>

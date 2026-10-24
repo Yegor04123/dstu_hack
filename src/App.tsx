@@ -3,12 +3,13 @@ import { TitleScreen } from "./screens/TitleScreen";
 import { BriefingScreen } from "./screens/BriefingScreen";
 import { DeskScreen } from "./screens/DeskScreen";
 import { DebriefScreen } from "./screens/DebriefScreen";
-import { caseOrder, cases } from "./data/cases";
+import { FeedbackScreen } from "./screens/FeedbackScreen";
+import { caseOrder, cases, peakCaseOrder } from "./data/cases";
 import { difficultyConfig } from "./data/difficulty";
 import { ClientId, Difficulty, Kpi, SaveState } from "./types";
 import { clearSave, loadSave, saveState } from "./utils/save";
 
-type Phase = "title" | "briefing" | "desk" | "debrief";
+type Phase = "title" | "briefing" | "desk" | "feedback" | "debrief";
 
 const emptyKpi = (): Kpi => ({
   csatSum: 0,
@@ -35,6 +36,7 @@ function App() {
     c5: "pending",
     c6: "pending",
     c7: "pending",
+    c8: "pending",
   });
   const [temperature, setTemperature] = useState<Record<ClientId, number>>({
     c1: 45,
@@ -44,10 +46,15 @@ function App() {
     c5: 50,
     c6: 70,
     c7: 10,
+    c8: 62,
   });
   const [openedKnowledge, setOpenedKnowledge] = useState<string[]>([]);
   const [notes, setNotes] = useState<string[]>([]);
+  const [stress, setStress] = useState(18);
+  const [reputation, setReputation] = useState(0);
+  const [achievements, setAchievements] = useState<string[]>([]);
   const [hasSave, setHasSave] = useState(false);
+  const [feedback, setFeedback] = useState<{ clientName: string; temperature: number; csatDelta: number; escalated: boolean; reason?: string } | null>(null);
 
   useEffect(() => {
     const s = loadSave();
@@ -59,7 +66,7 @@ function App() {
   const diffCfg = useMemo(() => difficultyConfig[difficulty], [difficulty]);
 
   function startNew(nick: string, diff: Difficulty) {
-    const q = [...caseOrder];
+    const q = diff === "peak" ? [...peakCaseOrder] : [...caseOrder];
     const cfg = difficultyConfig[diff];
     const initialNickname = nick.trim() || "Стажёр";
     const initialTemperature = {
@@ -70,6 +77,7 @@ function App() {
       c5: 50 + cfg.tempStartDelta,
       c6: 70 + cfg.tempStartDelta,
       c7: 10 + cfg.tempStartDelta,
+      c8: 62 + cfg.tempStartDelta,
     };
     const initialCases = {
       c1: "pending" as const,
@@ -79,6 +87,7 @@ function App() {
       c5: "pending" as const,
       c6: "pending" as const,
       c7: "pending" as const,
+      c8: "pending" as const,
     };
     const initialKpi = emptyKpi();
 
@@ -93,6 +102,9 @@ function App() {
     setTemperature(initialTemperature);
     setOpenedKnowledge([]);
     setNotes([]);
+    setStress(18);
+    setReputation(0);
+    setAchievements([]);
     saveState({
       version: 1,
       nickname: initialNickname,
@@ -104,6 +116,9 @@ function App() {
       temperature: initialTemperature,
       openedKnowledge: [],
       notes: [],
+      stress: 18,
+      reputation: 0,
+      achievements: [],
     });
     setHasSave(true);
     setPhase("briefing");
@@ -121,6 +136,9 @@ function App() {
     setTemperature(s.temperature);
     setOpenedKnowledge(s.openedKnowledge);
     setNotes(s.notes);
+    setStress(s.stress ?? 18);
+    setReputation(s.reputation ?? 0);
+    setAchievements(s.achievements ?? []);
     setPhase("desk");
   }
 
@@ -136,6 +154,9 @@ function App() {
       temperature,
       openedKnowledge,
       notes,
+      stress,
+      reputation,
+      achievements,
       ...next,
     } as SaveState;
     saveState(state);
@@ -150,6 +171,8 @@ function App() {
     fcr: boolean;
     escalated: boolean;
     reason?: string;
+    stressDelta?: number;
+    reputationDelta?: number;
   }) {
     if (!currentClientId) return;
     const newKpi: Kpi = {
@@ -172,6 +195,15 @@ function App() {
     const newNotes = [...notes];
     if (result.reason) newNotes.push(`${cases[currentClientId].name}: ${result.reason}`);
     setNotes(newNotes);
+    const newStress = Math.max(0, Math.min(100, stress + (result.stressDelta ?? (result.escalated ? 3 : -1))));
+    const newReputation = Math.max(-100, Math.min(100, reputation + (result.reputationDelta ?? (result.escalated ? 1 : 2))));
+    const newAchievements = [...achievements];
+    if (result.complianceDelta >= 10 && !newAchievements.includes("fraud-sensor")) newAchievements.push("fraud-sensor");
+    if (newKpi.compliance === 100 && !newAchievements.includes("safe-shift")) newAchievements.push("safe-shift");
+    if (result.escalated && result.reputationDelta && result.reputationDelta > 0 && !newAchievements.includes("clean-escalation")) newAchievements.push("clean-escalation");
+    setStress(newStress);
+    setReputation(newReputation);
+    setAchievements(newAchievements);
     const nextIdx = caseIndex + 1;
     setCaseIndex(nextIdx);
     persist({
@@ -180,9 +212,16 @@ function App() {
       cases: newDone,
       notes: newNotes,
       caseIndex: nextIdx,
+      stress: newStress,
+      reputation: newReputation,
+      achievements: newAchievements,
     });
     if (nextIdx >= queueOrder.length) {
-      setTimeout(() => setPhase("debrief"), 600);
+      setFeedback({ clientName: cases[currentClientId].name, temperature: newTemp[currentClientId], csatDelta: result.csatDelta, escalated: result.escalated, reason: result.reason });
+      setPhase("feedback");
+    } else {
+      setFeedback({ clientName: cases[currentClientId].name, temperature: newTemp[currentClientId], csatDelta: result.csatDelta, escalated: result.escalated, reason: result.reason });
+      setPhase("feedback");
     }
   }
 
@@ -210,6 +249,10 @@ function App() {
           kpi={kpi}
           casesDone={casesDone}
           notes={notes}
+          stress={stress}
+          reputation={reputation}
+          achievements={achievements}
+          caseTotal={queueOrder.length}
           onRestart={() => setPhase("title")}
         />
       );
@@ -223,10 +266,19 @@ function App() {
         queueOrder={queueOrder}
         caseIndex={caseIndex}
         temperature={temperature[currentClientId] ?? currentCase.startTemp}
+        stress={stress}
         kpi={kpi}
         openedKnowledge={openedKnowledge}
         onOpenKnowledge={openKnowledge}
         onFinish={finishCase}
+      />
+    );
+  }
+  if (phase === "feedback" && feedback) {
+    return (
+      <FeedbackScreen
+        {...feedback}
+        onContinue={() => setPhase(caseIndex >= queueOrder.length ? "debrief" : "desk")}
       />
     );
   }
@@ -237,6 +289,10 @@ function App() {
       kpi={kpi}
       casesDone={casesDone}
       notes={notes}
+      stress={stress}
+      reputation={reputation}
+      achievements={achievements}
+      caseTotal={queueOrder.length}
       onRestart={() => {
         localStorage.removeItem("smena_save_v1");
         setHasSave(false);

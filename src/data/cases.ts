@@ -1,6 +1,7 @@
 import { Case, ClientId } from "../types";
 
 export const caseOrder: ClientId[] = ["c1", "c2", "c3", "c4", "c5", "c6", "c7"];
+export const peakCaseOrder: ClientId[] = [...caseOrder, "c8"];
 
 export const cases: Record<ClientId, Case> = {
   c1: {
@@ -605,6 +606,53 @@ export const cases: Record<ClientId, Case> = {
             text: "Перейти к корректной маршрутизации.",
             tone: "fact",
             effects: { tempDelta: 8, csatDelta: -0.4, ahtDelta: 0, complianceDelta: -4 },
+          },
+        ],
+      },
+    ],
+  },
+  c8: {
+    id: "c8",
+    name: "Ольга Р.",
+    channel: "chat",
+    intro: "Пиковый входящий. Массовый сбой переводов — нужно выбрать приоритет.",
+    startTemp: 62,
+    priority: 3,
+    tags: ["пик", "сбой", "приоритет"],
+    crm: {
+      clientId: "c8",
+      name: "Ольга Р., 38",
+      type: "individual",
+      status: "активен",
+      products: ["Дебетовая карта *7740"],
+      lastOps: ["сегодня — перевод 12 000 ₽ отклонён"],
+      flags: ["массовый сбой", "приоритет"],
+      notes: ["Пишет в момент технического сбоя переводов."],
+    },
+    startNodeId: "c8_start",
+    nodes: [
+      {
+        id: "c8_start",
+        speaker: "client",
+        text: "У меня и у коллег не проходят переводы! Мне отвечают, что очередь огромная. Что делать?",
+        options: [
+          {
+            id: "c8_check",
+            text: "Проверить статус массового сбоя и сообщить честный ориентир.",
+            tone: "fact",
+            effects: { tempDelta: -14, csatDelta: 0.7, ahtDelta: 1, complianceDelta: 6, fcr: true },
+          },
+          {
+            id: "c8_guess",
+            text: "Обещать, что перевод точно пройдёт через пять минут.",
+            tone: "push",
+            effects: { tempDelta: 18, csatDelta: -0.8, ahtDelta: -1, complianceDelta: -12 },
+          },
+          {
+            id: "c8_escalate",
+            text: "Зафиксировать массовый инцидент и передать в техническую линию.",
+            tone: "escalate",
+            effects: { tempDelta: -8, csatDelta: 0.4, ahtDelta: 1, complianceDelta: 8, fcr: false, escalate: true, escalateReason: "Массовый технический сбой" },
           },
         ],
       },

@@ -21,6 +21,7 @@ type Props = {
   queueOrder: ClientId[];
   caseIndex: number;
   temperature: number;
+  stress: number;
   kpi: Kpi;
   openedKnowledge: string[];
   onOpenKnowledge: (id: string) => void;
@@ -32,6 +33,8 @@ type Props = {
     fcr: boolean;
     escalated: boolean;
     reason?: string;
+    stressDelta?: number;
+    reputationDelta?: number;
   }) => void;
 };
 
@@ -164,6 +167,7 @@ export function DeskScreen({
   queueOrder,
   caseIndex,
   temperature,
+  stress,
   kpi,
   openedKnowledge,
   onOpenKnowledge,
@@ -176,6 +180,9 @@ export function DeskScreen({
   const [escalateReason, setEscalateReason] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(60);
   const [isFinishing, setIsFinishing] = useState(false);
+  const [activeTool, setActiveTool] = useState<"crm" | "knowledge" | "check" | null>(null);
+  const onFinishRef = useRef(onFinish);
+  onFinishRef.current = onFinish;
 
   const [chatHistory, setChatHistory] = useState<DialogueNode[]>([]);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
@@ -208,7 +215,7 @@ export function DeskScreen({
         if (current <= 1) {
           window.clearInterval(timer);
           setIsFinishing(true);
-          onFinish({
+          onFinishRef.current({
             tempDelta: diffCfg.strictCompliance ? 16 : 10,
             csatDelta: -0.7,
             ahtDelta: 0.5,
@@ -216,6 +223,8 @@ export function DeskScreen({
             fcr: false,
             escalated: true,
             reason: "Время ответа истекло",
+            stressDelta: 12,
+            reputationDelta: -2,
           });
           return 0;
         }
@@ -223,13 +232,14 @@ export function DeskScreen({
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [caseItem.id, nodeId, diffCfg.timerMul, diffCfg.strictCompliance, onFinish]);
+  }, [caseItem.id, nodeId, diffCfg.timerMul, diffCfg.strictCompliance]);
 
   function choose(option: DialogueOption) {
     if (isFinishing) return;
     setIsFinishing(true);
+    const toolBonus = activeTool ? (activeTool === "check" ? -5 : -2) : 0;
     const res = {
-      tempDelta: option.effects.tempDelta,
+      tempDelta: option.effects.tempDelta + toolBonus,
       csatDelta: option.effects.csatDelta,
       ahtDelta: option.effects.ahtDelta,
       complianceDelta: diffCfg.strictCompliance
@@ -238,6 +248,8 @@ export function DeskScreen({
       fcr: option.effects.fcr ?? false,
       escalated: option.effects.escalate ?? false,
       reason: option.effects.escalateReason,
+      stressDelta: option.effects.tempDelta > 8 ? 6 : activeTool ? -3 : 0,
+      reputationDelta: option.effects.complianceDelta < 0 ? -2 : activeTool ? 2 : 0,
     };
 
     const nextNode = option.nextNodeId ? caseItem.nodes.find((n) => n.id === option.nextNodeId) : undefined;
@@ -287,12 +299,14 @@ export function DeskScreen({
       fcr: false,
       escalated: true,
       reason: escalateReason || "Эскалация по решению оператора",
+      stressDelta: -2,
+      reputationDelta: 3,
     });
   }
 
     return (
       <div className={styles.screen}>
-      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={temperature} timeRemaining={timeRemaining} />
+      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={temperature} timeRemaining={timeRemaining} stress={stress} />
       <main className={styles.layout}>
         <aside className={styles.queue}>
           <header>
@@ -360,9 +374,9 @@ export function DeskScreen({
 
         <aside className={styles.tools}>
           <div className={styles.tabs}>
-            <button className={tab === "crm" ? styles.activeTab : ""} onClick={() => setTab("crm")}>CRM</button>
-            <button className={tab === "kb" ? styles.activeTab : ""} onClick={() => setTab("kb")}>База знаний</button>
-            <button className={tab === "script" ? styles.activeTab : ""} onClick={() => setTab("script")}>Скрипт</button>
+            <button className={tab === "crm" ? styles.activeTab : ""} onClick={() => { setTab("crm"); setActiveTool("crm"); }}>CRM</button>
+            <button className={tab === "kb" ? styles.activeTab : ""} onClick={() => { setTab("kb"); setActiveTool("knowledge"); }}>База знаний</button>
+            <button className={tab === "script" ? styles.activeTab : ""} onClick={() => { setTab("script"); setActiveTool("check"); }}>Скрипт</button>
           </div>
           {tab === "crm" && (
             <div className={styles.panel}>
