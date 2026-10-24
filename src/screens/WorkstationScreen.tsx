@@ -50,6 +50,9 @@ export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop,
               </button>
               <span className={styles.laptopHint}>ОТКРЫТЬ CRM</span>
             </div>
+            <div className={styles.keyboard} aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
+            <div className={styles.mouse} aria-hidden="true" />
+            <div className={styles.paper} aria-hidden="true">CRM<br /><b>09:15</b></div>
             <div className={styles.cup}>☕</div>
             <div className={styles.phone}>☎</div>
           </div>
