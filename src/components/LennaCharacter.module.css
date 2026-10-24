@@ -1,0 +1,131 @@
+.container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  min-height: 450px;
+  padding: 20px 0;
+}
+
+.character {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.image {
+  height: 420px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* Обычное облачко */
+.speechBubble {
+  position: absolute;
+  top: 12%;
+  right: -200px;
+  background: white;
+  border: 2px solid var(--teal, #0f6b6b);
+  border-radius: 22px;
+  padding: 18px 24px;
+  max-width: 280px;
+  min-width: 200px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  animation: bubbleAppear 0.4s ease-out;
+}
+
+/*  Увеличенное облачко для последнего сообщения */
+.finalBubble {
+  right: -220px;
+  max-width: 340px;
+  min-width: 260px;
+  padding: 24px 32px;
+  top: 8%;
+}
+
+.speechText {
+  font-size: 1.1rem;
+  line-height: 1.55;
+  color: var(--ink, #1a1a1a);
+  font-style: italic;
+}
+
+/*  Крупный шрифт для последнего сообщения */
+.finalBubble .speechText {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* Хвостик облачка */
+.speechTail {
+  position: absolute;
+  left: -18px;
+  top: 40px;
+  width: 0;
+  height: 0;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-right: 18px solid var(--teal, #0f6b6b);
+}
+
+.speechTail::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -9px;
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-right: 16px solid white;
+}
+
+/*  Хвостик для увеличенного облачка */
+.finalBubble .speechTail {
+  top: 55px;
+  left: -20px;
+  border-top-width: 14px;
+  border-bottom-width: 14px;
+  border-right-width: 20px;
+}
+
+.finalBubble .speechTail::after {
+  top: -11px;
+  border-top-width: 11px;
+  border-bottom-width: 11px;
+  border-right-width: 18px;
+}
+
+@keyframes bubbleAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 900px) {
+  .speechBubble,
+  .finalBubble {
+    right: auto;
+    left: 50%;
+    top: -120px;
+    transform: translateX(-50%);
+    max-width: 320px;
+  }
+
+  .speechTail,
+  .finalBubble .speechTail {
+    left: 50%;
+    top: auto;
+    bottom: -18px;
+    transform: translateX(-50%) rotate(90deg);
+  }
+}

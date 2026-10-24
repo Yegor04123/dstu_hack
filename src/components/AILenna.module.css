@@ -1,0 +1,123 @@
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(15, 107, 107, 0.06) 0%, rgba(15, 107, 107, 0.02) 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(15, 107, 107, 0.25);
+  margin-top: 14px;
+}
+
+.avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--teal, #0f6b6b);
+  background: white;
+}
+
+.indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 2px solid white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--ink, #1a1a1a);
+  margin-bottom: 4px;
+}
+
+.status {
+  font-size: 1rem;
+  color: var(--muted, #6b6b6b);
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.tip {
+  position: relative;
+  background: white;
+  border: 1.5px solid var(--teal, #0f6b6b);
+  border-radius: 12px;
+  padding: 14px 16px;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tip p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--ink, #1a1a1a);
+  font-style: italic;
+}
+
+.tipTail {
+  position: absolute;
+  left: -8px;
+  top: 16px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 8px solid var(--teal, #0f6b6b);
+}
+
+.tipTail::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: -4px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 6px solid white;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
+  
+  .tipTail {
+    left: 50%;
+    top: auto;
+    bottom: -8px;
+    transform: translateX(-50%) rotate(90deg);
+  }
+}

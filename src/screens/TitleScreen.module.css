@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  overflow: hidden;
+  overflow: auto; /* было hidden → auto, чтобы не обрезало */
 }
 
 .bgGrid {
@@ -26,8 +26,9 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
-  padding: clamp(24px, 6vw, 56px);
+  padding: clamp(32px, 6vw, 64px); /* увеличили боковые отступы */
   z-index: 1;
+  overflow: hidden; /* чтобы ничего не вылезало */
 }
 
 .header {
@@ -51,9 +52,10 @@
 .title {
   margin: 0;
   font-size: clamp(64px, 12vw, 140px);
-  letter-spacing: 0.4em;
+  letter-spacing: 0.12em; /* было 0.4em → уменьшили */
   text-transform: uppercase;
   font-weight: 800;
+  white-space: nowrap; /* запрет переноса */
 }
 
 .subtitle {
@@ -150,4 +152,61 @@
 .note {
   margin: 0;
   color: var(--muted);
+}
+.lore {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border-left: 3px solid #0d9488;
+  border-radius: 4px;
+}
+
+.diffIcon {
+  margin-right: 6px;
+  font-size: 1.1em;
+}
+
+.cta::before {
+  margin-right: 6px;
+}
+
+.ghost::before {
+  margin-right: 6px;
+}
+/* Стили для открытых статей в базе знаний */
+.articleOpened {
+  background: rgba(15, 107, 107, 0.05);
+  border-color: rgba(15, 107, 107, 0.3);
+}
+
+.openedBadge {
+  font-size: 0.85em;
+  color: var(--teal);
+  font-style: normal;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.openedArticle {
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(15, 107, 107, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid var(--teal);
+}
+
+.openedArticle h3 {
+  margin: 0 0 8px 0;
+  font-size: 1em;
+  color: var(--ink);
+}
+
+.openedArticle .template {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--muted);
+  line-height: 1.5;
 }
