@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { Case, ClientId, Difficulty, Kpi, DialogueNode } from "../types";
+import { Case, ClientId, Difficulty, Kpi, DialogueNode, DialogueOption } from "../types";
 import { Hud } from "../components/Hud";
 import { AILenna } from "../components/AILenna";
 import { knowledgeArticles } from "../data/knowledge";
@@ -61,7 +61,7 @@ const replyDictionary: Record<string, string> = {
   "Сразу закрыть карту.": "Хорошо, я закрою вашу карту прямо сейчас.",
   "Проинформировать о процедуре и направить по регламенту.": "Процедура закрытия карты занимает до 30 дней. Я направлю вас по регламенту.",
   "Уважить выбор, заблокировать временно и объяснить процедуру закрытия.": "Я уважаю ваше решение. Карту можно заблокировать временно, а процедура полного закрытия занимает до 30 дней.",
-  "Уговорить не закрывать карту.": "Может быть, стоит reconsider? У карты есть полезные функции.",
+  "Уговорить не закрывать карту.": "Может быть, стоит пересмотреть решение? У карты есть полезные функции.",
   "Корректно завершить, зафиксировать обращение.": "Я зафиксирую ваше обращение. Всего доброго!",
   "Собрать реквизиты: дата, сумма, ИНН получателя, назначение.": "Для проверки мне нужны реквизиты: дата, сумма, ИНН получателя и назначение платежа.",
   "Уверенно сказать: «Платёж ушёл, всё в порядке».": "Платёж ушёл, всё в порядке.",
@@ -174,6 +174,8 @@ export function DeskScreen({
   const [kbQuery, setKbQuery] = useState("");
   const [showEscalate, setShowEscalate] = useState(false);
   const [escalateReason, setEscalateReason] = useState("");
+  const [timeRemaining, setTimeRemaining] = useState(60);
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const [chatHistory, setChatHistory] = useState<DialogueNode[]>([]);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
@@ -197,12 +199,42 @@ export function DeskScreen({
     dialogueEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
 
-  function choose(option: any) {
+  useEffect(() => {
+    const duration = Math.max(20, Math.round(60 * diffCfg.timerMul));
+    setTimeRemaining(duration);
+    setIsFinishing(false);
+    const timer = window.setInterval(() => {
+      setTimeRemaining((current) => {
+        if (current <= 1) {
+          window.clearInterval(timer);
+          setIsFinishing(true);
+          onFinish({
+            tempDelta: diffCfg.strictCompliance ? 16 : 10,
+            csatDelta: -0.7,
+            ahtDelta: 0.5,
+            complianceDelta: diffCfg.strictCompliance ? -8 : -3,
+            fcr: false,
+            escalated: true,
+            reason: "Время ответа истекло",
+          });
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [caseItem.id, nodeId, diffCfg.timerMul, diffCfg.strictCompliance, onFinish]);
+
+  function choose(option: DialogueOption) {
+    if (isFinishing) return;
+    setIsFinishing(true);
     const res = {
-      tempDelta: option.effects.tempDelta + (diffCfg.tempStartDelta > 0 ? 2 : 0),
+      tempDelta: option.effects.tempDelta,
       csatDelta: option.effects.csatDelta,
       ahtDelta: option.effects.ahtDelta,
-      complianceDelta: option.effects.complianceDelta,
+      complianceDelta: diffCfg.strictCompliance
+        ? Math.min(option.effects.complianceDelta, option.effects.complianceDelta < 0 ? option.effects.complianceDelta * 1.5 : option.effects.complianceDelta)
+        : option.effects.complianceDelta,
       fcr: option.effects.fcr ?? false,
       escalated: option.effects.escalate ?? false,
       reason: option.effects.escalateReason,
@@ -232,6 +264,7 @@ export function DeskScreen({
 
       if (hasNextOptions) {
         setNodeId(option.nextNodeId);
+        setIsFinishing(false);
         return;
       }
 
@@ -257,9 +290,9 @@ export function DeskScreen({
     });
   }
 
-  return (
-    <div className={styles.screen}>
-      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={temperature} />
+    return (
+      <div className={styles.screen}>
+      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={temperature} timeRemaining={timeRemaining} />
       <main className={styles.layout}>
         <aside className={styles.queue}>
           <header>
@@ -316,7 +349,7 @@ export function DeskScreen({
             <h2>Выберите ответ</h2>
             <div className={styles.optionGrid}>
               {node.options?.map((opt) => (
-                <button key={opt.id} className={styles.option} onClick={() => choose(opt)}>
+                <button key={opt.id} className={styles.option} disabled={isFinishing} onClick={() => choose(opt)}>
                   <span className={styles.optionTone}>{opt.tone}</span>
                   <p>{opt.text}</p>
                 </button>

@@ -6,7 +6,7 @@ import { DebriefScreen } from "./screens/DebriefScreen";
 import { caseOrder, cases } from "./data/cases";
 import { difficultyConfig } from "./data/difficulty";
 import { ClientId, Difficulty, Kpi, SaveState } from "./types";
-import { loadSave, saveState } from "./utils/save";
+import { clearSave, loadSave, saveState } from "./utils/save";
 
 type Phase = "title" | "briefing" | "desk" | "debrief";
 
@@ -61,22 +61,8 @@ function App() {
   function startNew(nick: string, diff: Difficulty) {
     const q = [...caseOrder];
     const cfg = difficultyConfig[diff];
-
-    setNickname(nick || "Стажёр");
-    setDifficulty(diff);
-    setQueueOrder(q);
-    setCaseIndex(0);
-    setKpi(emptyKpi());
-    setCasesDone({
-      c1: "pending",
-      c2: "pending",
-      c3: "pending",
-      c4: "pending",
-      c5: "pending",
-      c6: "pending",
-      c7: "pending",
-    });
-    setTemperature({
+    const initialNickname = nick.trim() || "Стажёр";
+    const initialTemperature = {
       c1: 45 + cfg.tempStartDelta,
       c2: 20 + cfg.tempStartDelta,
       c3: 55 + cfg.tempStartDelta,
@@ -84,9 +70,42 @@ function App() {
       c5: 50 + cfg.tempStartDelta,
       c6: 70 + cfg.tempStartDelta,
       c7: 10 + cfg.tempStartDelta,
-    });
+    };
+    const initialCases = {
+      c1: "pending" as const,
+      c2: "pending" as const,
+      c3: "pending" as const,
+      c4: "pending" as const,
+      c5: "pending" as const,
+      c6: "pending" as const,
+      c7: "pending" as const,
+    };
+    const initialKpi = emptyKpi();
+
+    clearSave();
+
+    setNickname(initialNickname);
+    setDifficulty(diff);
+    setQueueOrder(q);
+    setCaseIndex(0);
+    setKpi(initialKpi);
+    setCasesDone(initialCases);
+    setTemperature(initialTemperature);
     setOpenedKnowledge([]);
     setNotes([]);
+    saveState({
+      version: 1,
+      nickname: initialNickname,
+      difficulty: diff,
+      caseIndex: 0,
+      queueOrder: q,
+      kpi: initialKpi,
+      cases: initialCases,
+      temperature: initialTemperature,
+      openedKnowledge: [],
+      notes: [],
+    });
+    setHasSave(true);
     setPhase("briefing");
   }
 

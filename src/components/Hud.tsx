@@ -8,6 +8,7 @@ type Props = {
   queueIndex: number;
   queueTotal: number;
   temperature: number;
+  timeRemaining: number;
 };
 
 function avgCsat(k: Kpi) {
@@ -29,7 +30,7 @@ function tempClass(t: number) {
   return styles.cold;
 }
 
-export function Hud({ nickname, difficulty, kpi, queueIndex, queueTotal, temperature }: Props) {
+export function Hud({ nickname, difficulty, kpi, queueIndex, queueTotal, temperature, timeRemaining }: Props) {
   return (
     <header className={styles.hud}>
       <div className={styles.group}>
@@ -71,6 +72,10 @@ export function Hud({ nickname, difficulty, kpi, queueIndex, queueTotal, tempera
             <div className={`${styles.fill} ${tempClass(temperature)}`} style={{ width: `${temperature}%` }} />
           </div>
           <strong className={tempClass(temperature)}>{Math.round(temperature)}</strong>
+        </div>
+        <div className={styles.stat}>
+          <span>Ответ</span>
+          <strong className={timeRemaining <= 10 ? styles.hot : ""}>{timeRemaining}s</strong>
         </div>
       </div>
     </header>

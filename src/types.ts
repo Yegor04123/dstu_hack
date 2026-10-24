@@ -29,6 +29,8 @@ export type SaveState = {
   notes: string[];
 };
 
+export type CaseStatuses = Record<ClientId, CaseStatus>;
+
 export type KnowledgeArticle = {
   id: string;
   title: string;

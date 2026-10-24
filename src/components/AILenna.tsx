@@ -24,7 +24,7 @@ export function AILenna({ clientId, difficulty }: Props) {
   return (
     <div className={styles.container}>
       <div className={styles.avatar}>
-        <img src="/assets/lenna-avatar.png" alt="Лена" />
+        <img src="/assets/lenna-avatar.svg" alt="Лена" />
         <span className={styles.indicator}></span>
       </div>
       <div className={styles.info}>

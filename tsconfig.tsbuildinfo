@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/vite-env.d.ts","./src/components/hud.tsx","./src/data/cases.ts","./src/data/crm.ts","./src/data/difficulty.ts","./src/data/knowledge.ts","./src/screens/briefingscreen.tsx","./src/screens/debriefscreen.tsx","./src/screens/deskscreen.tsx","./src/screens/titlescreen.tsx","./src/utils/save.ts"],"version":"5.9.3"}

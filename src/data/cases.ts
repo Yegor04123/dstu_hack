@@ -463,7 +463,7 @@ export const cases: Record<ClientId, Case> = {
       clientId: "c6",
       name: "Дарья М., 41",
       type: "individual",
-      status: "активen",
+      status: "активен",
       products: ["Карта *5520"],
       lastOps: ["недавнее обращение"],
       flags: ["жалоба"],
@@ -492,7 +492,7 @@ export const cases: Record<ClientId, Case> = {
           },
           {
             id: "c6_c",
-            text: "Сразу зафиксировать жалобу по регламентов",
+            text: "Сразу зафиксировать жалобу по регламенту",
             tone: "fact",
             effects: { tempDelta: -10, csatDelta: 0.4, ahtDelta: 1, complianceDelta: 4 },
             nextNodeId: "c6_facts",
