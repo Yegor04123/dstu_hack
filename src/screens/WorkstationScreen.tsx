@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Difficulty } from "../types";
 import { WorkEvent } from "../data/workEvents";
 import styles from "./WorkstationScreen.module.css";
@@ -18,6 +19,14 @@ const labels: Record<Difficulty, string> = {
 };
 
 export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop, onChangeDifficulty, event }: Props) {
+  const [eventVisible, setEventVisible] = useState(false);
+
+  useEffect(() => {
+    setEventVisible(false);
+    const timer = window.setTimeout(() => setEventVisible(true), 4500);
+    return () => window.clearTimeout(timer);
+  }, [event.id]);
+
   return (
     <div className={styles.screen}>
       <div className={styles.windowGlow} />
@@ -67,12 +76,14 @@ export function WorkstationScreen({ nickname, difficulty, message, onOpenLaptop,
               <button onClick={onOpenLaptop}>Понял, открыть ноутбук →</button>
             </div>
           </div>
-          <div className={styles.eventCard}>
-            <span>Событие смены</span>
-            <strong>{event.title}</strong>
-            <p>{event.text}</p>
-            <button onClick={onOpenLaptop}>{event.action} →</button>
-          </div>
+          {eventVisible && (
+            <div className={styles.eventCard}>
+              <span>Событие смены</span>
+              <strong>{event.title}</strong>
+              <p>{event.text}</p>
+              <button onClick={onOpenLaptop}>{event.action} →</button>
+            </div>
+          )}
         </section>
 
         <footer className={styles.footer}>
