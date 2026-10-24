@@ -55,6 +55,7 @@ function App() {
   const [reputation, setReputation] = useState(0);
   const [achievements, setAchievements] = useState<string[]>([]);
   const [chatHistories, setChatHistories] = useState<Partial<Record<ClientId, DialogueNode[]>>>({});
+  const [caseStartedAt, setCaseStartedAt] = useState<Partial<Record<ClientId, number>>>({});
   const [hasSave, setHasSave] = useState(false);
   const [feedback, setFeedback] = useState<{ clientName: string; temperature: number; csatDelta: number; escalated: boolean; reason?: string } | null>(null);
 
@@ -108,6 +109,7 @@ function App() {
     setReputation(0);
     setAchievements([]);
     setChatHistories({});
+    setCaseStartedAt({});
     saveState({
       version: 1,
       nickname: initialNickname,
@@ -123,6 +125,7 @@ function App() {
       reputation: 0,
       achievements: [],
       chatHistories: {},
+      caseStartedAt: {},
     });
     setHasSave(true);
     setPhase("briefing");
@@ -144,6 +147,11 @@ function App() {
     setReputation(s.reputation ?? 0);
     setAchievements(s.achievements ?? []);
     setChatHistories(s.chatHistories ?? {});
+    const loadedStartedAt = { ...(s.caseStartedAt ?? {}) };
+    const loadedClientId = s.queueOrder[s.caseIndex];
+    if (loadedClientId && !loadedStartedAt[loadedClientId]) loadedStartedAt[loadedClientId] = Date.now();
+    setCaseStartedAt(loadedStartedAt);
+    saveState({ ...s, caseStartedAt: loadedStartedAt });
     setPhase("desk");
   }
 
@@ -163,6 +171,7 @@ function App() {
       reputation,
       achievements,
       chatHistories,
+      caseStartedAt,
       ...next,
     } as SaveState;
     saveState(state);
@@ -248,11 +257,17 @@ function App() {
     persist({ chatHistories: next });
   }
 
-  function selectClient(index: number) {
+  function openChat(index: number) {
     const id = queueOrder[index];
     if (!id || casesDone[id] === "done" || casesDone[id] === "escalated") return;
     setCaseIndex(index);
-    persist({ caseIndex: index });
+    if (!caseStartedAt[id]) {
+      const next = { ...caseStartedAt, [id]: Date.now() };
+      setCaseStartedAt(next);
+      persist({ caseIndex: index, caseStartedAt: next });
+    } else {
+      persist({ caseIndex: index });
+    }
     setPhase("desk");
   }
 
@@ -260,7 +275,7 @@ function App() {
     return <TitleScreen hasSave={hasSave} onStart={startNew} onContinue={continueSave} />;
   }
   if (phase === "briefing") {
-    return <BriefingScreen nickname={nickname} difficulty={difficulty} onStart={() => setPhase("desk")} />;
+    return <BriefingScreen nickname={nickname} difficulty={difficulty} onStart={() => openChat(caseIndex)} />;
   }
   if (phase === "desk") {
     if (!currentCase) {
@@ -288,12 +303,13 @@ function App() {
         queueOrder={queueOrder}
         caseIndex={caseIndex}
         temperature={temperature[currentClientId] ?? currentCase.startTemp}
+        startedAt={currentClientId ? caseStartedAt[currentClientId] : undefined}
         stress={stress}
         kpi={kpi}
         openedKnowledge={openedKnowledge}
         onOpenKnowledge={openKnowledge}
         casesDone={casesDone}
-        onSelectClient={selectClient}
+        onSelectClient={openChat}
         notes={notes}
         chatHistory={chatHistories[currentClientId] ?? []}
         onChatHistoryChange={updateChatHistory}

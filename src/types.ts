@@ -31,6 +31,7 @@ export type SaveState = {
   reputation: number;
   achievements: string[];
   chatHistories?: Partial<Record<ClientId, DialogueNode[]>>;
+  caseStartedAt?: Partial<Record<ClientId, number>>;
 };
 
 export type CaseStatuses = Record<ClientId, CaseStatus>;

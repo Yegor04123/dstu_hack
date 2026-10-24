@@ -35,7 +35,9 @@ function isSaveState(value: unknown): value is SaveState {
   if (!s.temperature || !baseIds.every((id) => typeof s.temperature?.[id] === "number")) return false;
   return typeof s.nickname === "string" && Array.isArray(s.openedKnowledge) && Array.isArray(s.notes)
     && typeof s.stress === "number" && typeof s.reputation === "number" && Array.isArray(s.achievements)
-    && (s.chatHistories === undefined || (typeof s.chatHistories === "object" && s.chatHistories !== null));
+    && (s.chatHistories === undefined || (typeof s.chatHistories === "object" && s.chatHistories !== null))
+    && (s.caseStartedAt === undefined || (typeof s.caseStartedAt === "object" && s.caseStartedAt !== null
+      && Object.values(s.caseStartedAt).every((startedAt) => typeof startedAt === "number" && startedAt > 0)));
 }
 
 export function saveState(state: SaveState) {

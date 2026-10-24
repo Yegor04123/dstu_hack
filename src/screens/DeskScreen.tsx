@@ -24,6 +24,7 @@ type Props = {
   queueOrder: ClientId[];
   caseIndex: number;
   temperature: number;
+  startedAt?: number;
   stress: number;
   kpi: Kpi;
   openedKnowledge: string[];
@@ -186,6 +187,7 @@ export function DeskScreen({
   queueOrder,
   caseIndex,
   temperature,
+  startedAt,
   stress,
   kpi,
   openedKnowledge,
@@ -271,32 +273,32 @@ export function DeskScreen({
 
   useEffect(() => {
     const duration = Math.max(20, Math.round(60 * diffCfg.timerMul));
-    setTimeRemaining(duration);
     setIsFinishing(false);
+    if (!startedAt) return;
+    const getRemaining = () => Math.max(0, duration - Math.floor((Date.now() - startedAt) / 1000));
     const timer = window.setInterval(() => {
       if (llmLoadingRef.current) return;
-      setTimeRemaining((current) => {
-        if (current <= 1) {
-          window.clearInterval(timer);
-          setIsFinishing(true);
-          onFinishRef.current({
-            tempDelta: diffCfg.strictCompliance ? 16 : 10,
-            csatDelta: -0.7,
-            ahtDelta: 0.5,
-            complianceDelta: diffCfg.strictCompliance ? -8 : -3,
-            fcr: false,
-            escalated: true,
-            reason: "Время ответа истекло",
-            stressDelta: 12,
-            reputationDelta: -2,
-          });
-          return 0;
-        }
-        return current - 1;
-      });
+      const remaining = getRemaining();
+      setTimeRemaining(remaining);
+      if (remaining <= 0) {
+        window.clearInterval(timer);
+        setIsFinishing(true);
+        onFinishRef.current({
+          tempDelta: diffCfg.strictCompliance ? 16 : 10,
+          csatDelta: -0.7,
+          ahtDelta: 0.5,
+          complianceDelta: diffCfg.strictCompliance ? -8 : -3,
+          fcr: false,
+          escalated: true,
+          reason: "Время ответа истекло",
+          stressDelta: 12,
+          reputationDelta: -2,
+        });
+      }
     }, 1000);
+    setTimeRemaining(getRemaining());
     return () => window.clearInterval(timer);
-  }, [caseItem.id, diffCfg.timerMul, diffCfg.strictCompliance]);
+  }, [caseItem.id, startedAt, diffCfg.timerMul, diffCfg.strictCompliance]);
 
   useEffect(() => {
     setLlmAssessment(null);
