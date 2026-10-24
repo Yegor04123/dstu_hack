@@ -478,16 +478,23 @@
   font-weight: 500;
 }
 
+/* Увеличенный скрипт линии */
 .script {
-  padding-left: 22px;
-  margin: 14px 0;
+  padding-left: 24px;
+  margin: 16px 0;
 }
 
 .script li {
-  font-size: 1.05rem;
-  margin: 10px 0;
-  line-height: 1.6;
+  font-size: 1.2rem;  /* ← было 1.05rem, стало больше */
+  margin: 12px 0;
+  line-height: 1.7;
   color: var(--ink, #1a1a1a);
+  font-weight: 500;
+}
+
+/* Заголовок "Скрипт линии" тоже увеличим */
+.panel header h2 {
+  font-size: 1.6rem;  /* ← было 1.5rem */
 }
 
 .tip {
