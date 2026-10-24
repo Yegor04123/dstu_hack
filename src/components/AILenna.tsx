@@ -20,11 +20,16 @@ export function AILenna({ clientId, difficulty }: Props) {
       : difficulty === "shift"
       ? "☕ Смена — Лена наблюдает"
       : "🔥 Пик — Лена занята";
+  const avatar = difficulty === "peak"
+    ? "/assets/lenna/lenna-stressed.svg"
+    : difficulty === "trainee"
+      ? "/assets/lenna/lenna-help.svg"
+      : "/assets/lenna/lenna-neutral.svg";
 
   return (
     <div className={styles.container}>
       <div className={styles.avatar}>
-        <img src="/assets/lenna-avatar.svg" alt="Лена" />
+        <img src={avatar} alt="Лена" />
         <span className={styles.indicator}></span>
       </div>
       <div className={styles.info}>

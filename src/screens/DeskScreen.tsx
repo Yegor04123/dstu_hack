@@ -426,7 +426,7 @@ export function DeskScreen({
   }
 
     return (
-      <div className={styles.screen}>
+      <div className={`${styles.screen} ${difficulty === "peak" ? styles.peakScreen : ""}`}>
       <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={liveTemperature} timeRemaining={timeRemaining} stress={stress} trust={trust} />
       <main className={styles.layout}>
         <aside className={styles.queue}>
@@ -469,7 +469,7 @@ export function DeskScreen({
         <section className={styles.channel}>
           <header className={styles.channelHeader}>
             <div>
-              <span className={styles.tag}>Канал: {caseItem.channel === "call" ? "ЗВОНОК" : "ЧАТ"}</span>
+              <span className={styles.tag}><img className={styles.channelIcon} src={caseItem.channel === "call" ? "/assets/icons/phone.svg" : "/assets/icons/chat.svg"} alt="" />Канал: {caseItem.channel === "call" ? "ЗВОНОК" : "ЧАТ"}</span>
               <h1>{caseItem.name}</h1>
               <p>{caseItem.intro}</p>
             </div>
@@ -555,9 +555,9 @@ export function DeskScreen({
 
         <aside className={styles.tools}>
           <div className={styles.tabs}>
-            <button className={tab === "crm" ? styles.activeTab : ""} onClick={() => { setTab("crm"); setActiveTool("crm"); }}>CRM</button>
-            <button className={tab === "kb" ? styles.activeTab : ""} onClick={() => { setTab("kb"); setActiveTool("knowledge"); }}>База знаний</button>
-            <button className={tab === "script" ? styles.activeTab : ""} onClick={() => { setTab("script"); setActiveTool("check"); }}>Скрипт</button>
+            <button className={tab === "crm" ? styles.activeTab : ""} onClick={() => { setTab("crm"); setActiveTool("crm"); }}><img src="/assets/icons/crm.svg" alt="" />CRM</button>
+            <button className={tab === "kb" ? styles.activeTab : ""} onClick={() => { setTab("kb"); setActiveTool("knowledge"); }}><img src="/assets/icons/knowledge-base.svg" alt="" />База знаний</button>
+            <button className={tab === "script" ? styles.activeTab : ""} onClick={() => { setTab("script"); setActiveTool("check"); }}><img src="/assets/icons/shield.svg" alt="" />Скрипт</button>
           </div>
           {tab === "crm" && (
             <div className={styles.panel}>

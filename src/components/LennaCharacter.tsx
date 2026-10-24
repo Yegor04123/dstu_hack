@@ -36,7 +36,7 @@ export function LennaCharacter({
     <div className={styles.container}>
       <div className={styles.character}>
         <img
-          src="/assets/lenna-full.png"
+          src="/assets/lenna/lenna-neutral.svg"
           alt="Лена"
           className={styles.image}
         />

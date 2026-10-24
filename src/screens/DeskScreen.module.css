@@ -1,11 +1,16 @@
 .screen {
   height: 100vh;
   min-height: 0;
-  background: var(--bg, #f5f3ef);
+  background-color: var(--bg, #f5f3ef);
+  background-image: url("/assets/backgrounds/office-day.svg");
+  background-size: cover;
+  background-position: center;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
+
+.peakScreen { background-image: url("/assets/backgrounds/office-peak.svg"); }
 
 .layout {
   display: grid;
@@ -205,6 +210,8 @@
   margin-bottom: 10px;
 }
 
+.channelIcon { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
+
 .channelHeader h1 {
   font-size: 2.2rem;
   margin: 0 0 8px 0;
@@ -370,7 +377,13 @@
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
+
+.tabs button img { width: 18px; height: 18px; }
 
 .tabs button.activeTab {
   background: var(--teal, #0f6b6b);
