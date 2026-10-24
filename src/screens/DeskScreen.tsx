@@ -192,6 +192,7 @@ export function DeskScreen({
   const [nodeId, setNodeId] = useState(caseItem.startNodeId);
   const [tab, setTab] = useState<"crm" | "kb" | "script">("crm");
   const [kbQuery, setKbQuery] = useState("");
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const [showEscalate, setShowEscalate] = useState(false);
   const [escalateReason, setEscalateReason] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(60);
@@ -563,39 +564,51 @@ export function DeskScreen({
           )}
           {tab === "kb" && (
             <div className={styles.panel}>
-              <header>
-                <h2>База знаний</h2>
-                <input value={kbQuery} onChange={(e) => setKbQuery(e.target.value)} placeholder="Поиск: комиссии, фрод..." />
-              </header>
-              <div className={styles.articleList}>
-                {articles.map((a) => {
-                  const isOpened = openedKnowledge.includes(a.id);
-                  return (
-                    <button 
-                      key={a.id} 
-                      className={`${styles.article} ${isOpened ? styles.articleOpened : ""}`}
-                      onClick={() => onOpenKnowledge(a.id)}
-                    >
-                      <strong>{a.title}</strong>
-                      <span>{a.tags.join(", ")}</span>
-                      {isOpened && <span className={styles.openedBadge}>✅ Открыта (нажмите для закрытия)</span>}
+              {selectedArticleId ? (() => {
+                const article = knowledgeArticles.find((item) => item.id === selectedArticleId);
+                if (!article) return null;
+                return (
+                  <div className={styles.articleView}>
+                    <button className={styles.backButton} onClick={() => setSelectedArticleId(null)}>← К списку статей</button>
+                    <div className={styles.articleHeading}>
+                      <span className={styles.articleNumber}>СТАТЬЯ БАЗЫ ЗНАНИЙ</span>
+                      <h2>{article.title}</h2>
+                      <div className={styles.articleTags}>{article.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                    </div>
+                    <p className={styles.articleBody}>{article.body}</p>
+                    <section className={styles.articleRule}>
+                      <h3>Можно</h3>
+                      <ul>{article.can.map((item) => <li key={item}>{item}</li>)}</ul>
+                    </section>
+                    <section className={`${styles.articleRule} ${styles.articleDanger}`}>
+                      <h3>Нельзя</h3>
+                      <ul>{article.cannot.map((item) => <li key={item}>{item}</li>)}</ul>
+                    </section>
+                    <section className={styles.articleTemplate}>
+                      <h3>Фраза-ориентир</h3>
+                      <p>{article.template}</p>
+                    </section>
+                    <button className={styles.markArticle} onClick={() => onOpenKnowledge(article.id)}>
+                      {openedKnowledge.includes(article.id) ? "✓ Статья изучена" : "Отметить как изученную"}
                     </button>
-                  );
-                })}
-              </div>
-              {openedKnowledge.length > 0 && (
-                <div className={styles.articleDetail}>
-                  {openedKnowledge.map((id) => {
-                    const article = knowledgeArticles.find((a) => a.id === id);
-                    if (!article) return null;
-                    return (
-                      <div key={id} className={styles.openedArticle}>
-                        <h3>{article.title}</h3>
-                        <p className={styles.template}>{article.template}</p>
-                      </div>
-                    );
-                  })}
-                </div>
+                  </div>
+                );
+              })() : (
+                <>
+                  <header>
+                    <h2>База знаний</h2>
+                    <input value={kbQuery} onChange={(e) => setKbQuery(e.target.value)} placeholder="Поиск: комиссии, фрод..." />
+                  </header>
+                  <div className={styles.articleList}>
+                    {articles.map((a) => (
+                      <button key={a.id} className={`${styles.article} ${openedKnowledge.includes(a.id) ? styles.articleOpened : ""}`} onClick={() => { setSelectedArticleId(a.id); if (!openedKnowledge.includes(a.id)) onOpenKnowledge(a.id); }}>
+                        <strong>{a.title}</strong>
+                        <span>{a.tags.join(", ")}</span>
+                        {openedKnowledge.includes(a.id) && <span className={styles.openedBadge}>✓ Изучена</span>}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
