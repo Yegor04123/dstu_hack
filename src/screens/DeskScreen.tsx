@@ -288,7 +288,11 @@ export function DeskScreen({
 
   useEffect(() => {
     setVisibleQueueCount(Math.min(queueOrder.length, Math.max(2, caseIndex + 1)));
-    const interval = window.setInterval(() => setVisibleQueueCount((count) => Math.min(queueOrder.length, count + 1)), 9000);
+    const interval = window.setInterval(() => setVisibleQueueCount((count) => {
+      // Иногда очередь резко пополняется сразу двумя чатами.
+      const incomingCount = count > 1 && count % 3 === 0 ? 2 : 1;
+      return Math.min(queueOrder.length, count + incomingCount);
+    }), 9000);
     return () => window.clearInterval(interval);
   }, [caseIndex, queueOrder.length]);
 
