@@ -25,7 +25,7 @@ function isSaveState(value: unknown): value is SaveState {
   const kpi = s.kpi;
   if (!difficulties.includes(s.difficulty as Difficulty)) return false;
   if (!Number.isInteger(s.caseIndex) || (s.caseIndex ?? -1) < 0 || (s.caseIndex ?? 9) > ids.length) return false;
-  if (!Array.isArray(s.queueOrder) || (s.queueOrder.length !== 7 && s.queueOrder.length !== 8) || !s.queueOrder.every((id) => ids.includes(id))) return false;
+  if (!Array.isArray(s.queueOrder) || ![4, 7, 8].includes(s.queueOrder.length) || !s.queueOrder.every((id) => ids.includes(id))) return false;
   if (new Set(s.queueOrder).size !== s.queueOrder.length) return false;
   if (s.queueOrder.length === 8 && !s.queueOrder.includes("c8")) return false;
   if (!kpi || typeof kpi !== "object") return false;

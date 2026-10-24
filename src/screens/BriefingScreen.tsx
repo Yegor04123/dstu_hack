@@ -26,6 +26,12 @@ export function BriefingScreen({ nickname, difficulty, onStart }: Props) {
       ? "Смена"
       : "Пик нагрузки";
 
+  const modeText = difficulty === "trainee"
+    ? "Короткие ситуации и готовые варианты реплик помогут освоить базовый алгоритм."
+    : difficulty === "shift"
+      ? "В очереди фрод, юрлицо и жалоба: придётся проверять факты, выбирать маршрут и отвечать за последствия."
+      : "Заготовок не будет: пиши клиенту сам, а локальная модель ответит и оценит диалог.";
+
   return (
     <div className={styles.screen}>
       <div className={styles.bgGrid} />
@@ -51,7 +57,7 @@ export function BriefingScreen({ nickname, difficulty, onStart }: Props) {
             Начать смену
           </button>
           <p className={styles.note}>
-            У тебя будет 7 клиентов. Слушай Лену и не торопись.
+            {modeText} Слушай Лену и не торопись.
           </p>
         </footer>
       </main>

@@ -4,7 +4,7 @@ import { BriefingScreen } from "./screens/BriefingScreen";
 import { DeskScreen } from "./screens/DeskScreen";
 import { DebriefScreen } from "./screens/DebriefScreen";
 import { FeedbackScreen } from "./screens/FeedbackScreen";
-import { caseOrder, cases, peakCaseOrder } from "./data/cases";
+import { caseOrder, caseOrderByDifficulty, cases } from "./data/cases";
 import { difficultyConfig } from "./data/difficulty";
 import { ClientId, Difficulty, Kpi, SaveState } from "./types";
 import { clearSave, loadSave, saveState } from "./utils/save";
@@ -66,7 +66,7 @@ function App() {
   const diffCfg = useMemo(() => difficultyConfig[difficulty], [difficulty]);
 
   function startNew(nick: string, diff: Difficulty) {
-    const q = diff === "peak" ? [...peakCaseOrder] : [...caseOrder];
+    const q = [...caseOrderByDifficulty[diff]];
     const cfg = difficultyConfig[diff];
     const initialNickname = nick.trim() || "Стажёр";
     const initialTemperature = {
