@@ -665,3 +665,25 @@
     max-height: 400px;
   }
 }
+
+.llmPanel {
+  margin: 0 24px 16px;
+  padding: 14px 16px;
+  border: 1px dashed var(--accent, #c45c26);
+  border-radius: 12px;
+  background: rgba(196, 92, 38, .06);
+}
+
+.llmHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--accent, #c45c26);
+}
+
+.llmHeader span, .llmPanel small, .llmMeta {
+  color: var(--muted, #5c6675);
+  font-size: .82rem;
+}
+
+.llmPanel p { margin: 10px 0 6px; }

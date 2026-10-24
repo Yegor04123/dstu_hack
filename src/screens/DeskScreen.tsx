@@ -4,6 +4,7 @@ import { Hud } from "../components/Hud";
 import { AILenna } from "../components/AILenna";
 import { knowledgeArticles } from "../data/knowledge";
 import { crmCards } from "../data/crm";
+import { assessTurn, LocalTurnAssessment } from "../services/localLlm";
 import styles from "./DeskScreen.module.css";
 
 type Props = {
@@ -185,6 +186,9 @@ export function DeskScreen({
   const [timeRemaining, setTimeRemaining] = useState(60);
   const [isFinishing, setIsFinishing] = useState(false);
   const [activeTool, setActiveTool] = useState<"crm" | "knowledge" | "check" | null>(null);
+  const [llmAssessment, setLlmAssessment] = useState<LocalTurnAssessment | null>(null);
+  const [llmLoading, setLlmLoading] = useState(false);
+  const [llmError, setLlmError] = useState(false);
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
 
@@ -238,6 +242,31 @@ export function DeskScreen({
     return () => window.clearInterval(timer);
   }, [caseItem.id, nodeId, diffCfg.timerMul, diffCfg.strictCompliance]);
 
+  useEffect(() => {
+    setLlmAssessment(null);
+    setLlmError(false);
+  }, [caseItem.id]);
+
+  async function evaluateWithLocalLlm(selectedReply: string) {
+    if (difficulty !== "peak") return;
+    setLlmLoading(true);
+    setLlmError(false);
+    try {
+      const result = await assessTurn({
+        clientName: caseItem.name,
+        clientIssue: caseItem.intro,
+        clientTemperature: temperature,
+        selectedReply,
+        crmFlags: caseItem.crm.flags,
+      });
+      setLlmAssessment(result);
+    } catch {
+      setLlmError(true);
+    } finally {
+      setLlmLoading(false);
+    }
+  }
+
   function choose(option: DialogueOption) {
     if (isFinishing) return;
     setIsFinishing(true);
@@ -263,6 +292,7 @@ export function DeskScreen({
       speaker: "agent",
       text: agentText,
     };
+    void evaluateWithLocalLlm(option.text);
 
     const appendMessages = (messages: DialogueNode[]) => {
       setChatHistory((prev) => {
@@ -376,6 +406,24 @@ export function DeskScreen({
             ))}
             <div ref={dialogueEndRef} />
           </div>
+
+          {difficulty === "peak" && (
+            <div className={styles.llmPanel}>
+              <div className={styles.llmHeader}>
+                <strong>Локальный клиент · оценка ИИ</strong>
+                <span>{llmLoading ? "анализирует…" : "Ollama / локальная модель"}</span>
+              </div>
+              {llmAssessment && (
+                <>
+                  <p className="serif">«{llmAssessment.clientReply}»</p>
+                  <div className={styles.llmMeta}>Оценка: {llmAssessment.score}/5 · температура {llmAssessment.temperatureDelta > 0 ? "+" : ""}{llmAssessment.temperatureDelta}</div>
+                  <small>{llmAssessment.feedback}</small>
+                </>
+              )}
+              {!llmAssessment && !llmLoading && !llmError && <small>Выберите ответ — модель сыграет реакцию клиента.</small>}
+              {llmError && <small>Локальная модель недоступна. Используется сценарная ветка игры.</small>}
+            </div>
+          )}
 
           <div className={styles.options}>
             <h2>Выберите ответ</h2>
