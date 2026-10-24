@@ -6,7 +6,7 @@ export type LocalTurnAssessment = {
   resolved: boolean;
 };
 
-const endpoint = import.meta.env.VITE_LLM_URL || "http://localhost:11434/api/chat";
+const endpoint = import.meta.env.VITE_LLM_URL || "/ollama/api/chat";
 const model = import.meta.env.VITE_LLM_MODEL || "qwen2.5:3b";
 
 function extractJson(text: string): LocalTurnAssessment {
@@ -61,7 +61,9 @@ export async function assessTurn(input: {
   clientTemperature: number;
   selectedReply: string;
   crmFlags: string[];
+  history?: Array<{ speaker: string; text: string }>;
 }): Promise<LocalTurnAssessment> {
+  const transcript = (input.history ?? []).slice(-10).map((message) => `${message.speaker}: ${message.text}`).join("\n");
   const prompt = `Ты — реалистичный клиент банка и строгий наставник оператора.
 Ответь только JSON без markdown:
 {"clientReply":"короткая реплика клиента на русском","score":1-5,"temperatureDelta":-15..15,"feedback":"одно предложение для стажёра","resolved":true|false}
@@ -70,7 +72,9 @@ export async function assessTurn(input: {
 Проблема: ${input.clientIssue}
 Температура до ответа: ${input.clientTemperature}/100
 Флаги CRM: ${input.crmFlags.join(", ") || "нет"}
-Ответ оператора: ${input.selectedReply}
+История разговора:
+${transcript || "начало разговора"}
+Оператор сейчас пишет: ${input.selectedReply}
 
 Не проси коды из SMS, CVV или полный номер карты. Не придумывай банковские обещания.
 Если оператор оскорбляет клиента, угрожает, отмахивается или грубит — score обязательно 1, temperatureDelta обязательно 15, resolved обязательно false.

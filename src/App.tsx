@@ -132,7 +132,7 @@ function App() {
     setQueueOrder(s.queueOrder);
     setCaseIndex(s.caseIndex);
     setKpi(s.kpi);
-    setCasesDone(s.cases as any);
+    setCasesDone(s.cases);
     setTemperature(s.temperature);
     setOpenedKnowledge(s.openedKnowledge);
     setNotes(s.notes);
@@ -204,19 +204,21 @@ function App() {
     setStress(newStress);
     setReputation(newReputation);
     setAchievements(newAchievements);
-    const nextIdx = caseIndex + 1;
-    setCaseIndex(nextIdx);
+    const nextIdx = queueOrder.findIndex((id, index) => index > caseIndex && newDone[id] === "pending");
+    const wrappedNextIdx = nextIdx >= 0 ? nextIdx : queueOrder.findIndex((id) => newDone[id] === "pending");
+    const savedCaseIndex = wrappedNextIdx >= 0 ? wrappedNextIdx : queueOrder.length;
+    setCaseIndex(savedCaseIndex);
     persist({
       kpi: newKpi,
       temperature: newTemp,
       cases: newDone,
       notes: newNotes,
-      caseIndex: nextIdx,
+      caseIndex: savedCaseIndex,
       stress: newStress,
       reputation: newReputation,
       achievements: newAchievements,
     });
-    if (nextIdx >= queueOrder.length) {
+    if (savedCaseIndex >= queueOrder.length) {
       setFeedback({ clientName: cases[currentClientId].name, temperature: newTemp[currentClientId], csatDelta: result.csatDelta, escalated: result.escalated, reason: result.reason });
       setPhase("feedback");
     } else {

@@ -88,6 +88,17 @@ const replyDictionary: Record<string, string> = {
   "Перейти к корректной маршрутизации.": "Сейчас я направлю вас к нужному специалисту.",
 };
 
+const clientAvatars: Record<ClientId, string> = {
+  c1: "/assets/clients/c1-igor.svg",
+  c2: "/assets/clients/c2-marina.svg",
+  c3: "/assets/clients/c3-petr.svg",
+  c4: "/assets/clients/c4-alina.svg",
+  c5: "/assets/clients/c5-yugtrade.svg",
+  c6: "/assets/clients/c6-darya.svg",
+  c7: "/assets/clients/c7-andrey.svg",
+  c8: "/assets/clients/c8-olga.svg",
+};
+
 function cleanAgentText(text: string): string {
   if (!text) return "";
   
@@ -190,8 +201,12 @@ export function DeskScreen({
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmError, setLlmError] = useState(false);
   const [freeMessage, setFreeMessage] = useState("");
+  const [aiTurns, setAiTurns] = useState<LocalTurnAssessment[]>([]);
+  const [liveTemperature, setLiveTemperature] = useState(temperature);
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
+  const llmLoadingRef = useRef(llmLoading);
+  llmLoadingRef.current = llmLoading;
 
   const [chatHistory, setChatHistory] = useState<DialogueNode[]>([]);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
@@ -209,7 +224,10 @@ export function DeskScreen({
     const startNode = caseItem.nodes.find((n) => n.id === caseItem.startNodeId) ?? caseItem.nodes[0];
     setChatHistory([startNode]);
     setNodeId(caseItem.startNodeId);
-  }, [caseItem]);
+    setLiveTemperature(temperature);
+    setAiTurns([]);
+    setFreeMessage("");
+  }, [caseItem.id, caseItem.startNodeId, temperature]);
 
   useEffect(() => {
     dialogueEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -220,6 +238,7 @@ export function DeskScreen({
     setTimeRemaining(duration);
     setIsFinishing(false);
     const timer = window.setInterval(() => {
+      if (llmLoadingRef.current) return;
       setTimeRemaining((current) => {
         if (current <= 1) {
           window.clearInterval(timer);
@@ -246,6 +265,7 @@ export function DeskScreen({
   useEffect(() => {
     setLlmAssessment(null);
     setLlmError(false);
+    setAiTurns([]);
   }, [caseItem.id]);
 
   async function evaluateWithLocalLlm(selectedReply: string) {
@@ -256,11 +276,14 @@ export function DeskScreen({
       const result = await assessTurn({
         clientName: caseItem.name,
         clientIssue: caseItem.intro,
-        clientTemperature: temperature,
+        clientTemperature: liveTemperature,
         selectedReply,
         crmFlags: caseItem.crm.flags,
+        history: chatHistory,
       });
       setLlmAssessment(result);
+      setAiTurns((turns) => [...turns, result]);
+      setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
     } catch {
       setLlmError(true);
     } finally {
@@ -279,11 +302,14 @@ export function DeskScreen({
       const result = await assessTurn({
         clientName: caseItem.name,
         clientIssue: caseItem.intro,
-        clientTemperature: temperature,
+        clientTemperature: liveTemperature,
         selectedReply: text,
         crmFlags: caseItem.crm.flags,
+        history: [...chatHistory, { speaker: "agent", text }],
       });
       setLlmAssessment(result);
+      setAiTurns((turns) => [...turns, result]);
+      setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
       setChatHistory((prev) => [...prev, { id: `free-client-${Date.now()}`, speaker: "client", text: result.clientReply }]);
     } catch {
       setLlmError(true);
@@ -296,14 +322,14 @@ export function DeskScreen({
     if (!llmAssessment || isFinishing) return;
     setIsFinishing(true);
     onFinish({
-      tempDelta: llmAssessment.temperatureDelta,
-      csatDelta: (llmAssessment.score - 3) * 0.45,
+      tempDelta: aiTurns.reduce((sum, turn) => sum + turn.temperatureDelta, 0),
+      csatDelta: (aiTurns.reduce((sum, turn) => sum + turn.score, 0) / Math.max(1, aiTurns.length) - 3) * 0.45,
       ahtDelta: 1,
       complianceDelta: llmAssessment.score >= 4 ? 2 : -2,
-      fcr: llmAssessment.resolved,
+      fcr: aiTurns.some((turn) => turn.resolved),
       escalated: false,
-      stressDelta: llmAssessment.score >= 4 ? -2 : 5,
-      reputationDelta: llmAssessment.score >= 4 ? 3 : -2,
+      stressDelta: aiTurns.some((turn) => turn.score <= 1) ? 8 : -2,
+      reputationDelta: aiTurns.every((turn) => turn.score >= 4) ? 3 : -2,
     });
   }
 
@@ -387,7 +413,7 @@ export function DeskScreen({
 
     return (
       <div className={styles.screen}>
-      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={temperature} timeRemaining={timeRemaining} stress={stress} />
+      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={liveTemperature} timeRemaining={timeRemaining} stress={stress} />
       <main className={styles.layout}>
         <aside className={styles.queue}>
           <header>
@@ -397,11 +423,10 @@ export function DeskScreen({
             {queueOrder.map((id, idx) => {
               const client = crmCards[id];
               const closed = casesDone[id] === "done" || casesDone[id] === "escalated";
-              const initials = client.name.replace(/[«»]/g, "").split(/[ .,]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
               return (
                 <li key={id} className={`${idx === caseIndex ? styles.active : ""} ${closed ? styles.done : ""}`}>
                   <button className={styles.clientItem} disabled={closed} onClick={() => onSelectClient(idx)} aria-label={`Открыть обращение ${client.name}`}>
-                    <span className={styles.avatar}>{initials}</span>
+                    <img className={styles.avatar} src={clientAvatars[id]} alt="" />
                     <span className={styles.clientInfo}>
                       <strong>{client.name.split(",")[0]}</strong>
                       <span>{closed ? "Закрыто" : idx === caseIndex ? (caseItem.channel === "call" ? "Звонок" : "Чат") : "Ожидание"}</span>
@@ -444,6 +469,12 @@ export function DeskScreen({
                 <p className="serif">{msg.text}</p>
               </div>
             ))}
+            {difficulty === "peak" && llmLoading && (
+              <div className={`${styles.message} ${styles.client} ${styles.typingMessage}`}>
+                <span className={styles.speaker}>{caseItem.name}</span>
+                <p className={styles.typing}><span /><span /><span /></p>
+              </div>
+            )}
             <div ref={dialogueEndRef} />
           </div>
 
