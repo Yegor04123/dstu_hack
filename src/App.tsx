@@ -7,6 +7,7 @@ import { FeedbackScreen } from "./screens/FeedbackScreen";
 import { caseOrder, caseOrderByDifficulty, cases } from "./data/cases";
 import { difficultyConfig } from "./data/difficulty";
 import { ClientId, Difficulty, Kpi, SaveState } from "./types";
+import { DialogueNode } from "./types";
 import { clearSave, loadSave, saveState } from "./utils/save";
 
 type Phase = "title" | "briefing" | "desk" | "feedback" | "debrief";
@@ -53,6 +54,7 @@ function App() {
   const [stress, setStress] = useState(18);
   const [reputation, setReputation] = useState(0);
   const [achievements, setAchievements] = useState<string[]>([]);
+  const [chatHistories, setChatHistories] = useState<Partial<Record<ClientId, DialogueNode[]>>>({});
   const [hasSave, setHasSave] = useState(false);
   const [feedback, setFeedback] = useState<{ clientName: string; temperature: number; csatDelta: number; escalated: boolean; reason?: string } | null>(null);
 
@@ -105,6 +107,7 @@ function App() {
     setStress(18);
     setReputation(0);
     setAchievements([]);
+    setChatHistories({});
     saveState({
       version: 1,
       nickname: initialNickname,
@@ -119,6 +122,7 @@ function App() {
       stress: 18,
       reputation: 0,
       achievements: [],
+      chatHistories: {},
     });
     setHasSave(true);
     setPhase("briefing");
@@ -139,6 +143,7 @@ function App() {
     setStress(s.stress ?? 18);
     setReputation(s.reputation ?? 0);
     setAchievements(s.achievements ?? []);
+    setChatHistories(s.chatHistories ?? {});
     setPhase("desk");
   }
 
@@ -157,6 +162,7 @@ function App() {
       stress,
       reputation,
       achievements,
+      chatHistories,
       ...next,
     } as SaveState;
     saveState(state);
@@ -236,6 +242,12 @@ function App() {
     persist({ openedKnowledge: next });
   }
 
+  function updateChatHistory(clientId: ClientId, history: DialogueNode[]) {
+    const next = { ...chatHistories, [clientId]: history };
+    setChatHistories(next);
+    persist({ chatHistories: next });
+  }
+
   function selectClient(index: number) {
     const id = queueOrder[index];
     if (!id || casesDone[id] === "done" || casesDone[id] === "escalated") return;
@@ -283,6 +295,8 @@ function App() {
         casesDone={casesDone}
         onSelectClient={selectClient}
         notes={notes}
+        chatHistory={chatHistories[currentClientId] ?? []}
+        onChatHistoryChange={updateChatHistory}
         onFinish={finishCase}
       />
     );

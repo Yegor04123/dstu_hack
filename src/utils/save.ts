@@ -34,7 +34,8 @@ function isSaveState(value: unknown): value is SaveState {
   if (!s.cases || !baseIds.every((id) => ["pending", "active", "done", "escalated"].includes(s.cases?.[id] ?? ""))) return false;
   if (!s.temperature || !baseIds.every((id) => typeof s.temperature?.[id] === "number")) return false;
   return typeof s.nickname === "string" && Array.isArray(s.openedKnowledge) && Array.isArray(s.notes)
-    && typeof s.stress === "number" && typeof s.reputation === "number" && Array.isArray(s.achievements);
+    && typeof s.stress === "number" && typeof s.reputation === "number" && Array.isArray(s.achievements)
+    && (s.chatHistories === undefined || (typeof s.chatHistories === "object" && s.chatHistories !== null));
 }
 
 export function saveState(state: SaveState) {

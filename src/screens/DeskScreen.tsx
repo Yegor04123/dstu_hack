@@ -31,6 +31,8 @@ type Props = {
   casesDone: Record<ClientId, CaseStatus>;
   onSelectClient: (index: number) => void;
   notes: string[];
+  chatHistory: DialogueNode[];
+  onChatHistoryChange: (clientId: ClientId, history: DialogueNode[]) => void;
   onFinish: (result: {
     tempDelta: number;
     csatDelta: number;
@@ -191,6 +193,8 @@ export function DeskScreen({
   casesDone,
   onSelectClient,
   notes,
+  chatHistory: savedChatHistory,
+  onChatHistoryChange,
   onFinish,
 }: Props) {
   const [nodeId, setNodeId] = useState(caseItem.startNodeId);
@@ -222,7 +226,7 @@ export function DeskScreen({
   const llmLoadingRef = useRef(llmLoading);
   llmLoadingRef.current = llmLoading;
 
-  const [chatHistory, setChatHistory] = useState<DialogueNode[]>([]);
+  const [chatHistory, setChatHistory] = useState<DialogueNode[]>(savedChatHistory);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
 
   const node = useMemo(() => caseItem.nodes.find((n) => n.id === nodeId) ?? caseItem.nodes[0], [caseItem, nodeId]);
@@ -236,13 +240,26 @@ export function DeskScreen({
 
   useEffect(() => {
     const startNode = caseItem.nodes.find((n) => n.id === caseItem.startNodeId) ?? caseItem.nodes[0];
-    setChatHistory([startNode]);
+    const initialHistory = savedChatHistory.length > 0 ? savedChatHistory : [startNode];
+    setChatHistory(initialHistory);
+    if (savedChatHistory.length === 0) onChatHistoryChange(caseItem.id, initialHistory);
     setNodeId(caseItem.startNodeId);
     setLiveTemperature(temperature);
     setTrust(profile.trust);
     setAiTurns([]);
     setFreeMessage("");
+    setTab("crm");
+    setKbQuery("");
+    setSelectedArticleId(null);
+    setShowEscalate(false);
+    setEscalateReason("");
+    setActiveTool(null);
   }, [caseItem.id, caseItem.startNodeId, temperature]);
+
+  function commitChatHistory(next: DialogueNode[]) {
+    setChatHistory(next);
+    onChatHistoryChange(caseItem.id, next);
+  }
 
   useEffect(() => {
     playIncoming(caseItem.channel);
@@ -279,7 +296,7 @@ export function DeskScreen({
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [caseItem.id, nodeId, diffCfg.timerMul, diffCfg.strictCompliance]);
+  }, [caseItem.id, diffCfg.timerMul, diffCfg.strictCompliance]);
 
   useEffect(() => {
     setLlmAssessment(null);
@@ -328,7 +345,7 @@ export function DeskScreen({
     const text = freeMessage.trim();
     if (!text || llmLoading || isFinishing) return;
     setFreeMessage("");
-    setChatHistory((prev) => [...prev, { id: `free-agent-${Date.now()}`, speaker: "agent", text }]);
+     commitChatHistory([...chatHistory, { id: `free-agent-${Date.now()}`, speaker: "agent", text }]);
     setLlmLoading(true);
     setLlmError(false);
     try {
@@ -347,7 +364,7 @@ export function DeskScreen({
       setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
       if (result.temperatureDelta > 0) playTemperatureAlert();
       setTrust((value) => Math.max(0, Math.min(100, value + (result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0))));
-      setChatHistory((prev) => [...prev, { id: `free-client-${Date.now()}`, speaker: "client", text: result.clientReply }]);
+      commitChatHistory([...chatHistory, { id: `free-agent-${Date.now()}`, speaker: "agent", text }, { id: `free-client-${Date.now()}`, speaker: "client", text: result.clientReply }]);
     } catch {
       setLlmError(true);
     } finally {
@@ -400,10 +417,11 @@ export function DeskScreen({
     void evaluateWithLocalLlm(option.text);
 
     const appendMessages = (messages: DialogueNode[]) => {
-      setChatHistory((prev) => {
-        const known = new Set(prev.map((message) => message.id));
-        return [...prev, ...messages.filter((message) => !known.has(message.id))];
-      });
+      const nextHistory = (() => {
+        const known = new Set(chatHistory.map((message) => message.id));
+        return [...chatHistory, ...messages.filter((message) => !known.has(message.id))];
+      })();
+      commitChatHistory(nextHistory);
     };
 
     if (option.nextNodeId && nextNode) {

@@ -30,6 +30,7 @@ export type SaveState = {
   stress: number;
   reputation: number;
   achievements: string[];
+  chatHistories?: Partial<Record<ClientId, DialogueNode[]>>;
 };
 
 export type CaseStatuses = Record<ClientId, CaseStatus>;
