@@ -398,6 +398,8 @@
   border-color: var(--teal, #0f6b6b);
 }
 
+.tabs button.activeTab img { filter: brightness(0) invert(1); }
+
 .panel {
   flex: 1;
   min-height: 0;
@@ -679,33 +681,98 @@
   font-weight: 600;
 }
 
-.cta:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ========== АДАПТИВНОСТЬ ========== */
-@media (max-width: 1400px) {
-  .layout {
-    grid-template-columns: 360px 1fr 420px;
-  }
-}
-
 @media (max-width: 1200px) {
   .layout {
-    grid-template-columns: 320px 1fr 380px;
+    grid-template-columns: minmax(240px, 30%) minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+    height: calc(100vh - 80px);
+    height: calc(100dvh - 80px);
+    overflow-y: auto;
   }
+
+  .queue { padding: 16px; }
+  .tools {
+    grid-column: 1 / -1;
+    max-height: 42vh;
+  }
+  .channelHeader, .dialogue, .options { padding: 18px; }
 }
 
 @media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr;
+  .screen {
     height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: auto;
   }
-  
-  .queue, .tools {
-    max-height: 400px;
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    padding: 10px;
+    gap: 10px;
   }
+
+  .queue {
+    order: 1;
+    flex: 0 0 auto;
+    max-height: 32dvh;
+    padding: 14px;
+  }
+
+  .channel {
+    order: 2;
+    flex: 0 0 auto;
+    min-height: 72dvh;
+  }
+
+  .tools {
+    order: 3;
+    flex: 0 0 auto;
+    max-height: 65dvh;
+    padding: 14px;
+  }
+
+  .channelHeader {
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .channelHeader h1 { font-size: clamp(1.45rem, 7vw, 2rem); }
+  .channelHeader p { font-size: 1rem; }
+  .escalateBtn { width: 100%; min-height: 44px; }
+  .dialogue { padding: 14px; gap: 12px; }
+  .message { max-width: 94%; padding: 13px 15px; }
+  .message p { font-size: 1rem; line-height: 1.45; }
+  .options { max-height: 45%; padding: 14px; }
+  .option { padding: 14px; min-height: 44px; }
+  .tabs { gap: 6px; }
+  .tabs button { min-height: 44px; padding: 8px 6px; font-size: .82rem; }
+  .tabs button img { width: 16px; height: 16px; }
+}
+
+@media (max-width: 480px) {
+  .queue header h2 { font-size: 1.35rem; }
+  .queue li { padding: 10px; }
+  .queue li strong { font-size: 1rem; }
+  .queue li span { font-size: .85rem; }
+  .avatarWrap { width: 40px; height: 40px; }
+  .avatar { width: 34px; height: 34px; flex-basis: 34px; }
+  .channelHeader { padding: 13px; }
+  .tag { font-size: .75rem; padding: 6px 9px; }
+  .dialogue { min-height: 260px; }
+  .llmPanel { padding: 10px; }
+  .composer textarea { min-height: 90px; }
+}
+
+.cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .dossierSection { padding-top: 14px; border-top: 1px solid var(--line, #d4cfc3); }

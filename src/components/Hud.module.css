@@ -118,3 +118,25 @@
 .fill.hot {
   background: var(--hot);
 }
+
+@media (max-width: 900px) {
+  .hud {
+    padding: 10px 12px;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .hud > .group:first-child { width: 100%; gap: 10px; }
+  .hud > .group:last-child {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 14px;
+    padding-bottom: 3px;
+  }
+
+  .stat { flex: 0 0 auto; }
+  .temp { flex: 0 0 auto; }
+  .temp span { max-width: 100px; line-height: 1.1; }
+  .bar { width: 90px; }
+}

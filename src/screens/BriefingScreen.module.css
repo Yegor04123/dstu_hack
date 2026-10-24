@@ -100,3 +100,11 @@
   color: var(--muted);
   font-size: 1.1rem;
 }
+
+@media (max-width: 600px) {
+  .screen { align-items: flex-start; overflow: auto; padding: 12px; }
+  .card { gap: 18px; padding: 22px 16px; margin: auto 0; }
+  .lennaSection { min-height: 250px; padding: 10px 0; }
+  .cta { width: 100%; min-height: 48px; padding-inline: 20px; }
+  .tag { letter-spacing: .12em; }
+}
