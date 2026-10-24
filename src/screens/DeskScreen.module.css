@@ -684,6 +684,10 @@
   }
 }
 
+.dossierSection { padding-top: 14px; border-top: 1px solid var(--line, #d4cfc3); }
+.traitList { display: flex; flex-wrap: wrap; gap: 6px; }
+.traitList span { padding: 4px 8px; border-radius: 999px; background: rgba(196, 92, 38, .1); color: var(--accent, #c45c26); font-size: .8rem; }
+
 .articleView { display: flex; flex-direction: column; gap: 18px; }
 .backButton { align-self: flex-start; border: 0; background: transparent; color: var(--teal, #0f6b6b); padding: 0; font: inherit; cursor: pointer; }
 .articleHeading { padding-bottom: 14px; border-bottom: 1px solid var(--line, #d4cfc3); }

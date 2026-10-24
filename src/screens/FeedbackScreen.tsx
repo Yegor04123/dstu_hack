@@ -1,3 +1,4 @@
+import { useState } from "react";
 import styles from "./FeedbackScreen.module.css";
 
 type Props = {
@@ -6,10 +7,13 @@ type Props = {
   csatDelta: number;
   escalated: boolean;
   reason?: string;
-  onContinue: () => void;
+  onContinue: (note: string) => void;
 };
 
 export function FeedbackScreen({ clientName, temperature, csatDelta, escalated, reason, onContinue }: Props) {
+  const [category, setCategory] = useState("Консультация");
+  const [risk, setRisk] = useState("Нет");
+  const [note, setNote] = useState("");
   const positive = csatDelta >= 0;
   return (
     <div className={styles.screen}>
@@ -23,7 +27,17 @@ export function FeedbackScreen({ clientName, temperature, csatDelta, escalated, 
           <div><span>Маршрут</span><strong>{escalated ? "Эскалация" : "L1"}</strong></div>
         </div>
         <p className={styles.lesson}>{reason || (positive ? "Эмпатия и конкретный следующий шаг сработали." : "Проверь CRM и признай эмоцию до объяснения фактов.")}</p>
-        <button className={styles.cta} onClick={onContinue}>Следующий входящий</button>
+        <section className={styles.afterCall}>
+          <h2>Оформить обращение</h2>
+          <select value={category} onChange={(event) => setCategory(event.target.value)}>
+            <option>Консультация</option><option>Претензия</option><option>Фрод</option><option>Платёж</option><option>Технический сбой</option>
+          </select>
+          <select value={risk} onChange={(event) => setRisk(event.target.value)}>
+            <option>Нет</option><option>Нужна проверка безопасности</option><option>Риск эскалации</option><option>Нарушение полномочий</option>
+          </select>
+          <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Короткая заметка для следующего оператора" rows={3} />
+        </section>
+        <button className={styles.cta} onClick={() => onContinue(`${category}; риск: ${risk}; заметка: ${note || "без дополнительной заметки"}`)}>Следующий входящий</button>
       </main>
     </div>
   );

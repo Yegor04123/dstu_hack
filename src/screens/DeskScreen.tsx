@@ -4,6 +4,7 @@ import { Hud } from "../components/Hud";
 import { AILenna } from "../components/AILenna";
 import { knowledgeArticles } from "../data/knowledge";
 import { crmCards } from "../data/crm";
+import { clientProfiles } from "../data/clientProfiles";
 import { assessTurn, LocalTurnAssessment } from "../services/localLlm";
 import styles from "./DeskScreen.module.css";
 
@@ -204,6 +205,8 @@ export function DeskScreen({
   const [freeMessage, setFreeMessage] = useState("");
   const [aiTurns, setAiTurns] = useState<LocalTurnAssessment[]>([]);
   const [liveTemperature, setLiveTemperature] = useState(temperature);
+  const profile = clientProfiles[caseItem.id];
+  const [trust, setTrust] = useState(profile.trust);
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
   const llmLoadingRef = useRef(llmLoading);
@@ -226,6 +229,7 @@ export function DeskScreen({
     setChatHistory([startNode]);
     setNodeId(caseItem.startNodeId);
     setLiveTemperature(temperature);
+    setTrust(profile.trust);
     setAiTurns([]);
     setFreeMessage("");
   }, [caseItem.id, caseItem.startNodeId, temperature]);
@@ -285,6 +289,7 @@ export function DeskScreen({
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
       setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
+      setTrust((value) => Math.max(0, Math.min(100, value + (result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0))));
     } catch {
       setLlmError(true);
     } finally {
@@ -311,6 +316,7 @@ export function DeskScreen({
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
       setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
+      setTrust((value) => Math.max(0, Math.min(100, value + (result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0))));
       setChatHistory((prev) => [...prev, { id: `free-client-${Date.now()}`, speaker: "client", text: result.clientReply }]);
     } catch {
       setLlmError(true);
@@ -359,6 +365,8 @@ export function DeskScreen({
       speaker: "agent",
       text: agentText,
     };
+    const trustDelta = option.tone === "empathy" ? 6 : option.tone === "fact" ? 3 : option.tone === "push" ? -8 : 1;
+    setTrust((value) => Math.max(0, Math.min(100, value + trustDelta)));
     void evaluateWithLocalLlm(option.text);
 
     const appendMessages = (messages: DialogueNode[]) => {
@@ -411,7 +419,7 @@ export function DeskScreen({
 
     return (
       <div className={styles.screen}>
-      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={liveTemperature} timeRemaining={timeRemaining} stress={stress} />
+      <Hud nickname={nickname} difficulty={difficulty} kpi={kpi} queueIndex={caseIndex} queueTotal={queueOrder.length} temperature={liveTemperature} timeRemaining={timeRemaining} stress={stress} trust={trust} />
       <main className={styles.layout}>
         <aside className={styles.queue}>
           <header>
@@ -556,6 +564,12 @@ export function DeskScreen({
               <section>
                 <h3>Заметки</h3>
                 <p>{crm.notes.join(" ")}</p>
+              </section>
+              <section className={styles.dossierSection}>
+                <h3>Досье клиента</h3>
+                <div className={styles.traitList}>{profile.traits.map((trait) => <span key={trait}>{trait}</span>)}</div>
+                <p><strong>Терпение:</strong> {profile.patience}% · <strong>Срочность:</strong> {profile.urgency}%</p>
+                <p><strong>Противоречие:</strong> {profile.contradiction}</p>
               </section>
             </div>
           )}

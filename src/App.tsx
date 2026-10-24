@@ -290,7 +290,12 @@ function App() {
     return (
       <FeedbackScreen
         {...feedback}
-        onContinue={() => setPhase(caseIndex >= queueOrder.length ? "debrief" : "desk")}
+        onContinue={(note) => {
+          const nextNotes = [...notes, `${feedback.clientName}: ${note}`];
+          setNotes(nextNotes);
+          persist({ notes: nextNotes });
+          setPhase(caseIndex >= queueOrder.length ? "debrief" : "desk");
+        }}
       />
     );
   }
