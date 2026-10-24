@@ -36,6 +36,26 @@ export function DebriefScreen({ nickname, difficulty, kpi, casesDone, notes, str
   const fcr = kpi.fcrTotal === 0 ? 0 : Math.round((kpi.fcrResolved / kpi.fcrTotal) * 100);
   const doneCount = Object.values(casesDone).filter((v) => v === "done" || v === "escalated").length;
 
+  function exportProfile() {
+    const profileCard = {
+      operator: nickname || "Стажёр",
+      difficulty,
+      profile,
+      metrics: { csat: Number(csat.toFixed(2)), aht: Number(aht.toFixed(1)), fcr, compliance: kpi.compliance, handled: `${doneCount}/${caseTotal}` },
+      stress,
+      reputation,
+      achievements,
+      notes,
+    };
+    const blob = new Blob([JSON.stringify(profileCard, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `smena-${(nickname || "operator").replace(/[^a-zа-яё0-9_-]/gi, "-")}-profile.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   let profile = "Сбалансированный";
   if (csat >= 4.2 && fcr >= 70) profile = "Заботливый и компетентный";
   if (aht <= 1.6 && fcr >= 60) profile = "Скоростной";
@@ -111,6 +131,7 @@ export function DebriefScreen({ nickname, difficulty, kpi, casesDone, notes, str
           </div>
         </section>
         <footer className={styles.footer}>
+          <button className={styles.secondary} onClick={exportProfile}>Скачать профиль</button>
           <button className={styles.cta} onClick={onRestart}>
             В главное меню
           </button>

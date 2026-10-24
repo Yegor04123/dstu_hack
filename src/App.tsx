@@ -282,6 +282,7 @@ function App() {
         onOpenKnowledge={openKnowledge}
         casesDone={casesDone}
         onSelectClient={selectClient}
+        notes={notes}
         onFinish={finishCase}
       />
     );

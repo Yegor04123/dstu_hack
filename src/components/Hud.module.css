@@ -61,6 +61,13 @@
   gap: 12px;
 }
 
+.tempAlert { animation: temperaturePulse 1.2s ease-in-out infinite; }
+
+@keyframes temperaturePulse {
+  0%, 100% { filter: saturate(1); }
+  50% { filter: saturate(1.7); }
+}
+
 .temp span {
   color: var(--muted);
   text-transform: uppercase;

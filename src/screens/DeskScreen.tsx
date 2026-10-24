@@ -5,6 +5,7 @@ import { AILenna } from "../components/AILenna";
 import { knowledgeArticles } from "../data/knowledge";
 import { crmCards } from "../data/crm";
 import { clientProfiles } from "../data/clientProfiles";
+import { playIncoming, playTemperatureAlert } from "../utils/sound";
 import { assessTurn, LocalTurnAssessment } from "../services/localLlm";
 import styles from "./DeskScreen.module.css";
 
@@ -29,6 +30,7 @@ type Props = {
   onOpenKnowledge: (id: string) => void;
   casesDone: Record<ClientId, CaseStatus>;
   onSelectClient: (index: number) => void;
+  notes: string[];
   onFinish: (result: {
     tempDelta: number;
     csatDelta: number;
@@ -188,6 +190,7 @@ export function DeskScreen({
   onOpenKnowledge,
   casesDone,
   onSelectClient,
+  notes,
   onFinish,
 }: Props) {
   const [nodeId, setNodeId] = useState(caseItem.startNodeId);
@@ -207,10 +210,12 @@ export function DeskScreen({
   const [liveTemperature, setLiveTemperature] = useState(temperature);
   const profile = clientProfiles[caseItem.id];
   const [trust, setTrust] = useState(profile.trust);
+  const [visibleQueueCount, setVisibleQueueCount] = useState(Math.min(queueOrder.length, Math.max(2, caseIndex + 1)));
   const nextIncomingId = difficulty === "peak"
     ? queueOrder.find((id, index) => index !== caseIndex && casesDone[id] === "pending")
     : undefined;
   const promiseWarning = /обещаю|точно будет|гарантирую|сегодня вернется|сейчас закрою/i.test(freeMessage);
+  const clientHistory = notes.filter((note) => note.startsWith(`${caseItem.name}:`));
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
   const llmLoadingRef = useRef(llmLoading);
@@ -237,6 +242,10 @@ export function DeskScreen({
     setAiTurns([]);
     setFreeMessage("");
   }, [caseItem.id, caseItem.startNodeId, temperature]);
+
+  useEffect(() => {
+    playIncoming(caseItem.channel);
+  }, [caseItem.id, caseItem.channel]);
 
   useEffect(() => {
     dialogueEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -277,6 +286,12 @@ export function DeskScreen({
     setAiTurns([]);
   }, [caseItem.id]);
 
+  useEffect(() => {
+    setVisibleQueueCount(Math.min(queueOrder.length, Math.max(2, caseIndex + 1)));
+    const interval = window.setInterval(() => setVisibleQueueCount((count) => Math.min(queueOrder.length, count + 1)), 9000);
+    return () => window.clearInterval(interval);
+  }, [caseIndex, queueOrder.length]);
+
   async function evaluateWithLocalLlm(selectedReply: string) {
     if (difficulty !== "peak") return;
     setLlmLoading(true);
@@ -295,6 +310,7 @@ export function DeskScreen({
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
       setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
+      if (result.temperatureDelta > 0) playTemperatureAlert();
       setTrust((value) => Math.max(0, Math.min(100, value + (result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0))));
     } catch {
       setLlmError(true);
@@ -324,6 +340,7 @@ export function DeskScreen({
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
       setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
+      if (result.temperatureDelta > 0) playTemperatureAlert();
       setTrust((value) => Math.max(0, Math.min(100, value + (result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0))));
       setChatHistory((prev) => [...prev, { id: `free-client-${Date.now()}`, speaker: "client", text: result.clientReply }]);
     } catch {
@@ -434,16 +451,18 @@ export function DeskScreen({
             <h2>Очередь</h2>
           </header>
           <ul>
-            {queueOrder.map((id, idx) => {
+            {queueOrder.slice(0, visibleQueueCount).map((id, idx) => {
               const client = crmCards[id];
               const closed = casesDone[id] === "done" || casesDone[id] === "escalated";
               return (
                 <li key={id} className={`${idx === caseIndex ? styles.active : ""} ${closed ? styles.done : ""}`}>
                   <button className={styles.clientItem} disabled={closed} onClick={() => onSelectClient(idx)} aria-label={`Открыть обращение ${client.name}`}>
-                    <img className={styles.avatar} src={clientAvatars[id]} alt="" />
+                    <span className={`${styles.avatarWrap} ${liveTemperature >= 70 && id === caseItem.id ? styles.avatarHot : liveTemperature >= 40 && id === caseItem.id ? styles.avatarWarm : ""}`}>
+                      <img className={styles.avatar} src={clientAvatars[id]} alt="" />
+                    </span>
                     <span className={styles.clientInfo}>
                       <strong>{client.name.split(",")[0]}</strong>
-                      <span>{closed ? "Закрыто" : idx === caseIndex ? (caseItem.channel === "call" ? "Звонок" : "Чат") : "Ожидание"}</span>
+                      <span>{closed ? "Закрыто" : idx === caseIndex ? (caseItem.channel === "call" ? "Звонок" : "Чат") : "Ожидание"} {idx === caseIndex && liveTemperature >= 70 && <b className={styles.hotBadge}>HOT</b>}</span>
                     </span>
                   </button>
                 </li>
@@ -580,6 +599,14 @@ export function DeskScreen({
               <section>
                 <h3>Заметки</h3>
                 <p>{crm.notes.join(" ")}</p>
+              </section>
+              <section className={styles.dossierSection}>
+                <h3>История обращений</h3>
+                {clientHistory.length > 0 ? <ul>{clientHistory.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Предыдущих обращений в этой смене нет.</p>}
+              </section>
+              <section className={`${styles.dossierSection} ${styles.contradiction}`}>
+                <h3>Проверка фактов</h3>
+                <p>{profile.contradiction}</p>
               </section>
               <section className={styles.dossierSection}>
                 <h3>Досье клиента</h3>

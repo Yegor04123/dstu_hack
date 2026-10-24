@@ -108,6 +108,13 @@
   object-fit: cover;
 }
 
+.avatarWrap { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; }
+.avatarWarm { animation: avatarWarm 1.8s infinite ease-in-out; }
+.avatarHot { animation: avatarHot 1s infinite ease-in-out; }
+.hotBadge { margin-left: 6px; color: var(--hot, #b3261e); font-size: .7rem; letter-spacing: .08em; }
+@keyframes avatarWarm { 0%, 100% { box-shadow: 0 0 0 2px rgba(184,134,11,.2); } 50% { box-shadow: 0 0 0 7px rgba(184,134,11,.08); } }
+@keyframes avatarHot { 0%, 100% { box-shadow: 0 0 0 3px rgba(179,38,30,.25); } 50% { box-shadow: 0 0 0 10px rgba(179,38,30,.08); } }
+
 .queue li .avatar {
   color: var(--teal, #0f6b6b);
   font-size: .82rem;
@@ -702,6 +709,7 @@
 }
 
 .dossierSection { padding-top: 14px; border-top: 1px solid var(--line, #d4cfc3); }
+.contradiction { color: var(--hot, #b3261e); }
 .traitList { display: flex; flex-wrap: wrap; gap: 6px; }
 .traitList span { padding: 4px 8px; border-radius: 999px; background: rgba(196, 92, 38, .1); color: var(--accent, #c45c26); font-size: .8rem; }
 

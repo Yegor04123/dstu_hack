@@ -68,7 +68,7 @@ export function Hud({ nickname, difficulty, kpi, queueIndex, queueTotal, tempera
             {queueIndex + 1}/{queueTotal}
           </strong>
         </div>
-        <div className={styles.temp}>
+        <div className={`${styles.temp} ${temperature >= 70 ? styles.tempAlert : ""}`}>
           <span>Температура клиента</span>
           <div className={styles.bar}>
             <div className={`${styles.fill} ${tempClass(temperature)}`} style={{ width: `${temperature}%` }} />
