@@ -211,6 +211,7 @@ export function DeskScreen({
   const profile = clientProfiles[caseItem.id];
   const [trust, setTrust] = useState(profile.trust);
   const [visibleQueueCount, setVisibleQueueCount] = useState(Math.min(queueOrder.length, Math.max(2, caseIndex + 1)));
+  const visibleQueue = queueOrder.filter((id, index) => index < visibleQueueCount || index === caseIndex);
   const nextIncomingId = difficulty === "peak"
     ? queueOrder.find((id, index) => index !== caseIndex && casesDone[id] === "pending")
     : undefined;
@@ -455,7 +456,8 @@ export function DeskScreen({
             <h2>Очередь</h2>
           </header>
           <ul>
-            {queueOrder.slice(0, visibleQueueCount).map((id, idx) => {
+            {visibleQueue.map((id) => {
+              const idx = queueOrder.indexOf(id);
               const client = crmCards[id];
               const closed = casesDone[id] === "done" || casesDone[id] === "escalated";
               return (
