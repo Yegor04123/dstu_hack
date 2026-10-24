@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <!-- Экран приветствия -->
     <div id="welcome-screen" class="screen active">
         <div class="welcome-container">
             <div class="logo">💬</div>
@@ -26,24 +25,18 @@
             <button id="start-btn" class="btn btn-primary">Начать смену</button>
             
             <div class="instructions">
-                <h3> Как играть:</h3>
+                <h3>🎮 Как играть:</h3>
                 <ul>
-                    <li>💬 <strong>Читай сообщения</strong> клиентов в чате</li>
-                    <li>💡 <strong>Слушай ИИ-помощника</strong> — он даёт подсказки прямо в чате</li>
-                    <li>⏱️ <strong>У тебя 5 минут</strong> на каждый ответ</li>
-                    <li>🎯 <strong>Выбирай готовый вариант</strong> или напиши свой</li>
-                    <li>📚 <strong>База знаний</strong> — но поиск отнимает 30 секунд!</li>
-                    <li>🤖 <strong>ИИ учится</strong> на твоих правильных ответах</li>
-                    <li>⭐ <strong>Клиенты ставят оценки</strong> и пишут отзывы</li>
-                    <li>️ <strong>Можно завершить смену</strong> досрочно</li>
+                    <li>💬 <strong>5 клиентов</strong> напишут тебе в чат</li>
+                    <li>⏱️ <strong>5 минут</strong> на каждый ответ</li>
+                    <li>🎯 <strong>Выбери вариант</strong> или напиши свой</li>
+                    <li>💡 <strong>Слушай ИИ</strong> — он подскажет, когда использовать базу знаний или передать старшему</li>
+                    <li>⭐ <strong>Клиенты оценят</strong> твой ответ от 1 до 5 звёзд</li>
                 </ul>
-                <div class="tips">
-                    <p>💡 <strong>Совет:</strong> иногда клиент доволен, но компания теряет деньги. Балансируй!</p>
-                </div>
             </div>
             
             <div id="ai-info" class="ai-info">
-                <h3>🤖 ИИ-помощник</h3>
+                <h3> ИИ-помощник</h3>
                 <p>Обучен на ответах: <span id="ai-trained-count">0</span></p>
                 <p>Точность рекомендаций: <span id="ai-accuracy">0</span>%</p>
             </div>
@@ -55,19 +48,14 @@
         </div>
     </div>
 
-    <!-- Экран игры -->
     <div id="game-screen" class="screen">
         <div class="game-header">
             <div class="player-info">
                 👤 <span id="player-nickname">Игрок</span>
             </div>
             <div class="header-actions">
-                <button id="ai-hint-btn" class="ai-hint-btn" style="display:none;">
-                    💡 Подсказка ИИ
-                </button>
-                <button id="end-shift-btn" class="btn-end-shift">
-                    ️ Завершить смену
-                </button>
+                <button id="ai-hint-btn" class="ai-hint-btn" style="display:none;">💡 Подсказка ИИ</button>
+                <button id="end-shift-btn" class="btn-end-shift">️ Завершить смену</button>
                 <div class="timer-container">
                     <span class="timer-icon">⏱️</span>
                     <span id="timer" class="timer">05:00</span>
@@ -75,48 +63,37 @@
             </div>
         </div>
         
-        <!-- Метрики -->
         <div class="metrics-bar">
             <div class="metric">
                 <span class="metric-icon">⭐</span>
                 <span class="metric-label">KPI</span>
-                <div class="metric-bar">
-                    <div id="kpi-bar" class="metric-fill kpi"></div>
-                </div>
+                <div class="metric-bar"><div id="kpi-bar" class="metric-fill kpi"></div></div>
                 <span id="kpi-value" class="metric-value">50</span>
             </div>
             <div class="metric">
                 <span class="metric-icon">🧠</span>
                 <span class="metric-label">Знания</span>
-                <div class="metric-bar">
-                    <div id="knowledge-bar" class="metric-fill knowledge"></div>
-                </div>
+                <div class="metric-bar"><div id="knowledge-bar" class="metric-fill knowledge"></div></div>
                 <span id="knowledge-value" class="metric-value">0</span>
             </div>
             <div class="metric">
                 <span class="metric-icon">💰</span>
                 <span class="metric-label">Зарплата</span>
-                <div class="metric-bar">
-                    <div id="salary-bar" class="metric-fill salary"></div>
-                </div>
+                <div class="metric-bar"><div id="salary-bar" class="metric-fill salary"></div></div>
                 <span id="salary-value" class="metric-value">50</span>
             </div>
             <div class="metric">
                 <span class="metric-icon">😊</span>
                 <span class="metric-label">Настроение</span>
-                <div class="metric-bar">
-                    <div id="health-bar" class="metric-fill health"></div>
-                </div>
+                <div class="metric-bar"><div id="health-bar" class="metric-fill health"></div></div>
                 <span id="health-value" class="metric-value">100</span>
             </div>
         </div>
 
-        <!-- Информация о сообщении -->
         <div class="call-info">
-            <span id="call-counter">Сообщение 1 / 10</span>
+            <span id="call-counter">Сообщение 1 / 5</span>
         </div>
 
-        <!-- Чат-интерфейс -->
         <div class="chat-container">
             <div class="chat-header">
                 <div class="chat-client-info">
@@ -131,11 +108,9 @@
                     </div>
                 </div>
             </div>
-            
             <div class="chat-messages" id="chat-messages"></div>
         </div>
 
-        <!-- Варианты ответов -->
         <div id="answers-section" class="answers-section" style="display:none;">
             <h3>Выберите ответ:</h3>
             <div id="answers-list" class="answers-list"></div>
@@ -147,16 +122,11 @@
             </div>
 
             <div class="extra-actions">
-                <button id="search-kb-btn" class="btn btn-action">
-                    🔍 База знаний
-                </button>
-                <button id="transfer-btn" class="btn btn-action">
-                     Передать старшему
-                </button>
+                <button id="search-kb-btn" class="btn btn-action">🔍 База знаний</button>
+                <button id="transfer-btn" class="btn btn-action">🔄 Передать старшему</button>
             </div>
         </div>
 
-        <!-- База знаний (модальное окно) -->
         <div id="knowledge-modal" class="modal">
             <div class="modal-content">
                 <h2>📚 База знаний</h2>
@@ -166,7 +136,6 @@
             </div>
         </div>
 
-        <!-- Всплывающая подсказка ИИ -->
         <div id="ai-popup" class="ai-popup" style="display:none;">
             <div class="ai-popup-header">
                 <span>🤖 ИИ-помощник</span>
@@ -175,15 +144,12 @@
             <div class="ai-popup-content">
                 <p>На основе ваших предыдущих ответов рекомендую:</p>
                 <div id="ai-popup-answer" class="ai-popup-answer"></div>
-                <button id="insert-ai-answer-btn" class="btn btn-insert">
-                    📋 Вставить в ответ и редактировать
-                </button>
+                <button id="insert-ai-answer-btn" class="btn btn-insert">📋 Вставить в ответ и редактировать</button>
                 <p class="ai-popup-hint">💡 После вставки вы можете изменить текст перед отправкой</p>
             </div>
         </div>
     </div>
 
-    <!-- Экран концовки -->
     <div id="ending-screen" class="screen">
         <div class="ending-container">
             <h1 id="ending-title">Смена завершена!</h1>
