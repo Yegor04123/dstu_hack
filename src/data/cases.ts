@@ -3,7 +3,7 @@ import { Case, ClientId } from "../types";
 export const caseOrder: ClientId[] = ["c1", "c2", "c3", "c4", "c5", "c6", "c7"];
 export const peakCaseOrder: ClientId[] = [...caseOrder, "c8"];
 export const caseOrderByDifficulty = {
-  trainee: ["c1", "c2", "c4", "c7"] as ClientId[],
+  trainee: ["c1", "c2", "c4", "c7", "c3"] as ClientId[],
   shift: ["c3", "c5", "c6", "c1", "c2", "c4", "c7"] as ClientId[],
   peak: peakCaseOrder,
 };
