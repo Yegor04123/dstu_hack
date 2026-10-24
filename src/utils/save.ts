@@ -37,7 +37,9 @@ function isSaveState(value: unknown): value is SaveState {
     && typeof s.stress === "number" && typeof s.reputation === "number" && Array.isArray(s.achievements)
     && (s.chatHistories === undefined || (typeof s.chatHistories === "object" && s.chatHistories !== null))
     && (s.caseStartedAt === undefined || (typeof s.caseStartedAt === "object" && s.caseStartedAt !== null
-      && Object.values(s.caseStartedAt).every((startedAt) => typeof startedAt === "number" && startedAt > 0)));
+      && Object.values(s.caseStartedAt).every((startedAt) => typeof startedAt === "number" && startedAt > 0)))
+    && (s.trust === undefined || (typeof s.trust === "object" && s.trust !== null
+      && Object.values(s.trust).every((value) => typeof value === "number" && value >= 0 && value <= 100)));
 }
 
 export function saveState(state: SaveState) {

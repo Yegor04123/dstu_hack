@@ -8,6 +8,7 @@ import { caseOrder, caseOrderByDifficulty, cases } from "./data/cases";
 import { difficultyConfig } from "./data/difficulty";
 import { ClientId, Difficulty, Kpi, SaveState } from "./types";
 import { DialogueNode } from "./types";
+import { clientProfiles } from "./data/clientProfiles";
 import { clearSave, loadSave, saveState } from "./utils/save";
 
 type Phase = "title" | "briefing" | "desk" | "feedback" | "debrief";
@@ -56,6 +57,7 @@ function App() {
   const [achievements, setAchievements] = useState<string[]>([]);
   const [chatHistories, setChatHistories] = useState<Partial<Record<ClientId, DialogueNode[]>>>({});
   const [caseStartedAt, setCaseStartedAt] = useState<Partial<Record<ClientId, number>>>({});
+  const [trust, setTrust] = useState<Partial<Record<ClientId, number>>>({});
   const [hasSave, setHasSave] = useState(false);
   const [feedback, setFeedback] = useState<{ clientName: string; temperature: number; csatDelta: number; escalated: boolean; reason?: string } | null>(null);
 
@@ -110,6 +112,7 @@ function App() {
     setAchievements([]);
     setChatHistories({});
     setCaseStartedAt({});
+    setTrust(Object.fromEntries(Object.entries(clientProfiles).map(([id, profile]) => [id, profile.trust])) as Partial<Record<ClientId, number>>);
     saveState({
       version: 1,
       nickname: initialNickname,
@@ -126,6 +129,7 @@ function App() {
       achievements: [],
       chatHistories: {},
       caseStartedAt: {},
+      trust: Object.fromEntries(Object.entries(clientProfiles).map(([id, profile]) => [id, profile.trust])),
     });
     setHasSave(true);
     setPhase("briefing");
@@ -151,7 +155,9 @@ function App() {
     const loadedClientId = s.queueOrder[s.caseIndex];
     if (loadedClientId && !loadedStartedAt[loadedClientId]) loadedStartedAt[loadedClientId] = Date.now();
     setCaseStartedAt(loadedStartedAt);
-    saveState({ ...s, caseStartedAt: loadedStartedAt });
+    const loadedTrust = s.trust ?? Object.fromEntries(Object.entries(clientProfiles).map(([id, profile]) => [id, profile.trust]));
+    setTrust(loadedTrust);
+    saveState({ ...s, caseStartedAt: loadedStartedAt, trust: loadedTrust });
     setPhase("desk");
   }
 
@@ -172,6 +178,7 @@ function App() {
       achievements,
       chatHistories,
       caseStartedAt,
+      trust,
       ...next,
     } as SaveState;
     saveState(state);
@@ -188,6 +195,8 @@ function App() {
     reason?: string;
     stressDelta?: number;
     reputationDelta?: number;
+    finalTemperature?: number;
+    finalTrust?: number;
   }) {
     if (!currentClientId) return;
     const newKpi: Kpi = {
@@ -201,9 +210,11 @@ function App() {
     };
     const newTemp = {
       ...temperature,
-      [currentClientId]: Math.max(0, Math.min(100, temperature[currentClientId] + result.tempDelta)),
+       [currentClientId]: result.finalTemperature ?? Math.max(0, Math.min(100, temperature[currentClientId] + result.tempDelta)),
     };
     setTemperature(newTemp);
+    const newTrust = result.finalTrust === undefined ? trust : { ...trust, [currentClientId]: result.finalTrust };
+    setTrust(newTrust);
     setKpi(newKpi);
     const newDone = { ...casesDone, [currentClientId]: result.escalated ? "escalated" : "done" };
     setCasesDone(newDone);
@@ -232,6 +243,7 @@ function App() {
       stress: newStress,
       reputation: newReputation,
       achievements: newAchievements,
+      trust: newTrust,
     });
     setFeedback({ clientName: cases[currentClientId].name, temperature: newTemp[currentClientId], csatDelta: result.csatDelta, escalated: result.escalated, reason: result.reason });
     setPhase("feedback");
@@ -250,6 +262,18 @@ function App() {
     const next = { ...chatHistories, [clientId]: history };
     setChatHistories(next);
     persist({ chatHistories: next });
+  }
+
+  function updateTemperature(clientId: ClientId, value: number) {
+    const next = { ...temperature, [clientId]: value };
+    setTemperature(next);
+    persist({ temperature: next });
+  }
+
+  function updateTrust(clientId: ClientId, value: number) {
+    const next = { ...trust, [clientId]: value };
+    setTrust(next);
+    persist({ trust: next });
   }
 
   function openChat(index: number) {
@@ -299,6 +323,7 @@ function App() {
         caseIndex={caseIndex}
         temperature={temperature[currentClientId] ?? currentCase.startTemp}
         startedAt={currentClientId ? caseStartedAt[currentClientId] : undefined}
+        trustValue={currentClientId ? trust[currentClientId] : undefined}
         stress={stress}
         kpi={kpi}
         openedKnowledge={openedKnowledge}
@@ -308,6 +333,8 @@ function App() {
         notes={notes}
         chatHistory={chatHistories[currentClientId] ?? []}
         onChatHistoryChange={updateChatHistory}
+        onTemperatureChange={updateTemperature}
+        onTrustChange={updateTrust}
         onFinish={finishCase}
       />
     );

@@ -25,6 +25,7 @@ type Props = {
   caseIndex: number;
   temperature: number;
   startedAt?: number;
+  trustValue?: number;
   stress: number;
   kpi: Kpi;
   openedKnowledge: string[];
@@ -34,6 +35,8 @@ type Props = {
   notes: string[];
   chatHistory: DialogueNode[];
   onChatHistoryChange: (clientId: ClientId, history: DialogueNode[]) => void;
+  onTemperatureChange: (clientId: ClientId, value: number) => void;
+  onTrustChange: (clientId: ClientId, value: number) => void;
   onFinish: (result: {
     tempDelta: number;
     csatDelta: number;
@@ -44,6 +47,8 @@ type Props = {
     reason?: string;
     stressDelta?: number;
     reputationDelta?: number;
+    finalTemperature?: number;
+    finalTrust?: number;
   }) => void;
 };
 
@@ -188,6 +193,7 @@ export function DeskScreen({
   caseIndex,
   temperature,
   startedAt,
+  trustValue,
   stress,
   kpi,
   openedKnowledge,
@@ -197,6 +203,8 @@ export function DeskScreen({
   notes,
   chatHistory: savedChatHistory,
   onChatHistoryChange,
+  onTemperatureChange,
+  onTrustChange,
   onFinish,
 }: Props) {
   const [nodeId, setNodeId] = useState(caseItem.startNodeId);
@@ -215,7 +223,7 @@ export function DeskScreen({
   const [aiTurns, setAiTurns] = useState<LocalTurnAssessment[]>([]);
   const [liveTemperature, setLiveTemperature] = useState(temperature);
   const profile = clientProfiles[caseItem.id];
-  const [trust, setTrust] = useState(profile.trust);
+  const [trust, setTrust] = useState(trustValue ?? profile.trust);
   const [visibleQueueCount, setVisibleQueueCount] = useState(Math.min(queueOrder.length, Math.max(2, caseIndex + 1)));
   const visibleQueue = queueOrder.filter((_, index) => index < visibleQueueCount || index === caseIndex);
   const nextIncomingId = difficulty === "peak"
@@ -245,7 +253,7 @@ export function DeskScreen({
     if (savedChatHistory.length === 0) onChatHistoryChange(caseItem.id, initialHistory);
     setNodeId(caseItem.startNodeId);
     setLiveTemperature(temperature);
-    setTrust(profile.trust);
+    setTrust(trustValue ?? profile.trust);
     setAiTurns([]);
     setFreeMessage("");
     setTab("crm");
@@ -254,7 +262,27 @@ export function DeskScreen({
     setShowEscalate(false);
     setEscalateReason("");
     setActiveTool(null);
-  }, [caseItem.id, caseItem.startNodeId, temperature]);
+  }, [caseItem.id, caseItem.startNodeId]);
+
+  useEffect(() => {
+    setTrust(trustValue ?? profile.trust);
+  }, [caseItem.id, trustValue]);
+
+  function changeTemperature(delta: number) {
+    setLiveTemperature((value) => {
+      const next = Math.max(0, Math.min(100, value + delta));
+      onTemperatureChange(caseItem.id, next);
+      return next;
+    });
+  }
+
+  function changeTrust(delta: number) {
+    setTrust((value) => {
+      const next = Math.max(0, Math.min(100, value + delta));
+      onTrustChange(caseItem.id, next);
+      return next;
+    });
+  }
 
   function commitChatHistory(next: DialogueNode[]) {
     setChatHistory(next);
@@ -330,9 +358,9 @@ export function DeskScreen({
       });
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
-      setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
+      changeTemperature(result.temperatureDelta);
       if (result.temperatureDelta > 0) playTemperatureAlert();
-      setTrust((value) => Math.max(0, Math.min(100, value + (result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0))));
+      changeTrust(result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0);
     } catch {
       setLlmError(true);
     } finally {
@@ -360,9 +388,9 @@ export function DeskScreen({
       });
       setLlmAssessment(result);
       setAiTurns((turns) => [...turns, result]);
-      setLiveTemperature((value) => Math.max(0, Math.min(100, value + result.temperatureDelta)));
+      changeTemperature(result.temperatureDelta);
       if (result.temperatureDelta > 0) playTemperatureAlert();
-      setTrust((value) => Math.max(0, Math.min(100, value + (result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0))));
+      changeTrust(result.score >= 4 ? 5 : result.score <= 1 ? -12 : 0);
       commitChatHistory([...chatHistory, { id: `free-agent-${Date.now()}`, speaker: "agent", text }, { id: `free-client-${Date.now()}`, speaker: "client", text: result.clientReply }]);
     } catch {
       setLlmError(true);
@@ -376,6 +404,8 @@ export function DeskScreen({
     setIsFinishing(true);
     onFinish({
       tempDelta: aiTurns.reduce((sum, turn) => sum + turn.temperatureDelta, 0),
+      finalTemperature: liveTemperature,
+      finalTrust: trust,
       csatDelta: (aiTurns.reduce((sum, turn) => sum + turn.score, 0) / Math.max(1, aiTurns.length) - 3) * 0.45,
       ahtDelta: 1,
       complianceDelta: llmAssessment.score >= 4 ? 2 : -2,
@@ -412,7 +442,10 @@ export function DeskScreen({
       text: agentText,
     };
     const trustDelta = option.tone === "empathy" ? 6 : option.tone === "fact" ? 3 : option.tone === "push" ? -8 : 1;
-    setTrust((value) => Math.max(0, Math.min(100, value + trustDelta)));
+    const finalTemperature = Math.max(0, Math.min(100, liveTemperature + res.tempDelta));
+    const finalTrust = Math.max(0, Math.min(100, trust + trustDelta));
+    changeTrust(trustDelta);
+    changeTemperature(res.tempDelta);
     void evaluateWithLocalLlm(option.text);
 
     const appendMessages = (messages: DialogueNode[]) => {
@@ -441,12 +474,12 @@ export function DeskScreen({
       }
 
       setNodeId(option.nextNodeId);
-      onFinish(res);
+      onFinish({ ...res, finalTemperature, finalTrust });
       return;
     }
 
     appendMessages([agentMessage]);
-    onFinish(res);
+    onFinish({ ...res, finalTemperature, finalTrust });
   }
 
   function doEscalate() {
