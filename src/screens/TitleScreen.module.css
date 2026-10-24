@@ -176,3 +176,37 @@
 .ghost::before {
   margin-right: 6px;
 }
+/* Стили для открытых статей в базе знаний */
+.articleOpened {
+  background: rgba(15, 107, 107, 0.05);
+  border-color: rgba(15, 107, 107, 0.3);
+}
+
+.openedBadge {
+  font-size: 0.85em;
+  color: var(--teal);
+  font-style: normal;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.openedArticle {
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(15, 107, 107, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid var(--teal);
+}
+
+.openedArticle h3 {
+  margin: 0 0 8px 0;
+  font-size: 1em;
+  color: var(--ink);
+}
+
+.openedArticle .template {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--muted);
+  line-height: 1.5;
+}

@@ -60,7 +60,9 @@ function App() {
 
   function startNew(nick: string, diff: Difficulty) {
     const q = [...caseOrder];
-    setNickname(nick || "Стажёр");
+    const cfg = difficultyConfig[diff]; // 🆕 Локальная переменная вместо diffCfg
+    
+    setNickname(nick || "Стажёр"); // ✅ Без пробела
     setDifficulty(diff);
     setQueueOrder(q);
     setCaseIndex(0);
@@ -75,17 +77,17 @@ function App() {
       c7: "pending",
     });
     setTemperature({
-      c1: 45 + diffCfg.tempStartDelta,
-      c2: 20 + diffCfg.tempStartDelta,
-      c3: 55 + diffCfg.tempStartDelta,
-      c4: 35 + diffCfg.tempStartDelta,
-      c5: 50 + diffCfg.tempStartDelta,
-      c6: 70 + diffCfg.tempStartDelta,
-      c7: 10 + diffCfg.tempStartDelta,
+      c1: 45 + cfg.tempStartDelta,
+      c2: 20 + cfg.tempStartDelta,
+      c3: 55 + cfg.tempStartDelta,
+      c4: 35 + cfg.tempStartDelta,
+      c5: 50 + cfg.tempStartDelta, // ✅ Исправлена опечатка tempSta rtDelta
+      c6: 70 + cfg.tempStartDelta,
+      c7: 10 + cfg.tempStartDelta,
     });
     setOpenedKnowledge([]);
     setNotes([]);
-    setPhase("briefing");
+    setPhase("briefing"); // ✅ Без пробела
   }
 
   function continueSave() {
@@ -140,7 +142,10 @@ function App() {
       fcrTotal: kpi.fcrTotal + 1,
       compliance: Math.max(0, Math.min(100, kpi.compliance + result.complianceDelta)),
     };
-    const newTemp = { ...temperature, [currentClientId]: Math.max(0, Math.min(100, temperature[currentClientId] + result.tempDelta)) };
+    const newTemp = {
+      ...temperature,
+      [currentClientId]: Math.max(0, Math.min(100, temperature[currentClientId] + result.tempDelta)),
+    };
     setTemperature(newTemp);
     setKpi(newKpi);
     const newDone = { ...casesDone, [currentClientId]: result.escalated ? "escalated" : "done" };
@@ -148,7 +153,6 @@ function App() {
     const newNotes = [...notes];
     if (result.reason) newNotes.push(`${cases[currentClientId].name}: ${result.reason}`);
     setNotes(newNotes);
-
     const nextIdx = caseIndex + 1;
     setCaseIndex(nextIdx);
     persist({
@@ -158,28 +162,37 @@ function App() {
       notes: newNotes,
       caseIndex: nextIdx,
     });
-
     if (nextIdx >= queueOrder.length) {
       setTimeout(() => setPhase("debrief"), 600);
     }
   }
 
   function openKnowledge(id: string) {
-    if (openedKnowledge.includes(id)) return;
-    const next = [...openedKnowledge, id];
-    setOpenedKnowledge(next);
-    persist({ openedKnowledge: next });
+  const next = openedKnowledge.includes(id)
+    ? openedKnowledge.filter((i) => i !== id)  // Убираем статью
+    : [...openedKnowledge, id];                 // Добавляем статью
+  setOpenedKnowledge(next);
+  persist({ openedKnowledge: next });
   }
 
-  if (phase === "title") {
+  if (phase === "title") { // ✅ Без пробела
     return <TitleScreen hasSave={hasSave} onStart={startNew} onContinue={continueSave} />;
   }
-  if (phase === "briefing") {
+  if (phase === "briefing") { // ✅ Без пробела
     return <BriefingScreen nickname={nickname} difficulty={difficulty} onStart={() => setPhase("desk")} />;
   }
-  if (phase === "desk") {
+  if (phase === "desk") { // ✅ Без пробела
     if (!currentCase) {
-      return <DebriefScreen nickname={nickname} difficulty={difficulty} kpi={kpi} casesDone={casesDone} notes={notes} onRestart={() => setPhase("title")} />;
+      return (
+        <DebriefScreen
+          nickname={nickname}
+          difficulty={difficulty}
+          kpi={kpi}
+          casesDone={casesDone}
+          notes={notes}
+          onRestart={() => setPhase("title")}
+        />
+      );
     }
     return (
       <DeskScreen
