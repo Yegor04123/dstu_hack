@@ -140,6 +140,8 @@
   justify-content: flex-end;
 }
 
+.metricGuide { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(15,107,107,.04); }.metricGuide h3 { margin: 0 0 8px; }.metricGuide p { margin: 6px 0; color: var(--muted); line-height: 1.4; font-size: .9rem; }.metricGuide strong { color: var(--teal); font-family: "IBM Plex Mono", monospace; }
+
 .secondary {
   border: 1px solid var(--teal);
   background: transparent;

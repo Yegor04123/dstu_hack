@@ -100,6 +100,13 @@ export function DebriefScreen({ nickname, difficulty, kpi, casesDone, notes, str
               <span>Профиль оператора</span>
               <strong>{profile}</strong>
             </div>
+            <div className={styles.metricGuide}>
+              <h3>Расшифровка метрик</h3>
+              <p><strong>CSAT</strong> — насколько клиент доволен итогом разговора.</p>
+              <p><strong>AHT</strong> — среднее время обработки обращения.</p>
+              <p><strong>FCR</strong> — доля вопросов, решённых без эскалации.</p>
+              <p><strong>Compliance</strong> — соблюдение безопасности и регламентов.</p>
+            </div>
             <div className={styles.profile}>
               <span>Состояние и репутация</span>
               <strong>Стресс {stress}% · Репутация {reputation >= 0 ? "+" : ""}{reputation}</strong>

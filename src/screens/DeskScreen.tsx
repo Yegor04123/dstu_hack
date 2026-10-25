@@ -224,7 +224,8 @@ export function DeskScreen({
   const [freeMessage, setFreeMessage] = useState("");
   const [aiTurns, setAiTurns] = useState<LocalTurnAssessment[]>([]);
   const [interrupt, setInterrupt] = useState<string | null>(null);
-  const [catVisible, setCatVisible] = useState(false);
+  const [noiseVisible, setNoiseVisible] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [liveTemperature, setLiveTemperature] = useState(temperature);
   const profile = clientProfiles[caseItem.id];
   const [trust, setTrust] = useState(trustValue ?? profile.trust);
@@ -239,6 +240,8 @@ export function DeskScreen({
   onFinishRef.current = onFinish;
 
   const [chatHistory, setChatHistory] = useState<DialogueNode[]>(savedChatHistory);
+  const chatHistoryRef = useRef(chatHistory);
+  chatHistoryRef.current = chatHistory;
   const dialogueEndRef = useRef<HTMLDivElement>(null);
 
   const node = useMemo(() => caseItem.nodes.find((n) => n.id === nodeId) ?? caseItem.nodes[0], [caseItem, nodeId]);
@@ -289,6 +292,7 @@ export function DeskScreen({
   }
 
   function commitChatHistory(next: DialogueNode[]) {
+    chatHistoryRef.current = next;
     setChatHistory(next);
     onChatHistoryChange(caseItem.id, next);
   }
@@ -337,6 +341,7 @@ export function DeskScreen({
 
   useEffect(() => {
     setInterrupt(null);
+    setNoiseVisible(false);
     if (difficulty === "trainee") return;
     const firstAlert = window.setTimeout(() => setInterrupt("Этот посетитель уже звонил несколько раз. Он снова говорит: «Я только уточнить» — очередь ждёт твоего решения."), 10000);
     const repeatAlerts = window.setInterval(() => setInterrupt("Повторный звонок: знакомый голос снова на линии. Не обещай нового — проверь историю обращения."), 26000);
@@ -347,9 +352,8 @@ export function DeskScreen({
   }, [caseItem.id, difficulty]);
 
   useEffect(() => {
-    setCatVisible(false);
-    if (difficulty === "trainee" || caseIndex % 3 !== 1) return;
-    const timer = window.setTimeout(() => setCatVisible(true), 16000);
+    if (difficulty === "trainee" || caseIndex % 2 !== 0 || Math.random() > 0.35) return;
+    const timer = window.setTimeout(() => setNoiseVisible(true), 14000);
     return () => window.clearTimeout(timer);
   }, [caseItem.id, caseIndex, difficulty]);
 
@@ -472,8 +476,9 @@ export function DeskScreen({
 
     const appendMessages = (messages: DialogueNode[]) => {
       const nextHistory = (() => {
-        const known = new Set(chatHistory.map((message) => message.id));
-        return [...chatHistory, ...messages.filter((message) => !known.has(message.id))];
+        const currentHistory = chatHistoryRef.current;
+        const known = new Set(currentHistory.map((message) => message.id));
+        return [...currentHistory, ...messages.filter((message) => !known.has(message.id))];
       })();
       commitChatHistory(nextHistory);
     };
@@ -486,7 +491,20 @@ export function DeskScreen({
         // а не ещё одна реплика. Иначе первый ответ отображается дважды.
         appendMessages([agentMessage]);
       } else {
-        appendMessages([agentMessage, nextNode]);
+        appendMessages([agentMessage]);
+        setIsTyping(true);
+        window.setTimeout(() => {
+          setIsTyping(false);
+          appendMessages([nextNode]);
+          if (hasNextOptions) {
+            setNodeId(option.nextNodeId!);
+            setIsFinishing(false);
+          } else {
+            setNodeId(option.nextNodeId!);
+            onFinish({ ...res, finalTemperature, finalTrust });
+          }
+        }, 900 + Math.round(Math.random() * 700));
+        return;
       }
 
       if (hasNextOptions) {
@@ -591,7 +609,6 @@ export function DeskScreen({
               <button onClick={() => setInterrupt(null)}>Принять к сведению</button>
             </div>
           )}
-          {catVisible && <div className={styles.catRun} aria-label="Кот пробежал по клавиатуре">🐈</div>}
           
           <div className={styles.dialogue}>
             {chatHistory.map((msg, index) => (
@@ -605,10 +622,17 @@ export function DeskScreen({
                 <p className="serif">{msg.text}</p>
               </div>
             ))}
-            {difficulty === "peak" && llmLoading && (
+            {((difficulty === "peak" && llmLoading) || isTyping) && (
               <div className={`${styles.message} ${styles.client} ${styles.typingMessage}`}>
                 <span className={styles.speaker}>{caseItem.name}</span>
                 <p className={styles.typing}><span /><span /><span /></p>
+              </div>
+            )}
+            {noiseVisible && (
+              <div className={styles.noiseNotice}>
+                <span>Сообщение клиента искажено</span>
+                <p>«муррр... ))) %%»</p>
+                <button onClick={() => { setNoiseVisible(false); commitChatHistory([...chatHistoryRef.current, { id: `noise-${Date.now()}`, speaker: "client", text: "Мурр... ))) %%" }, { id: `agent-resend-${Date.now()}`, speaker: "agent", text: "Похоже, сообщение исказилось. Повторите, пожалуйста, суть вопроса." }]); }}>Попросить повторить</button>
               </div>
             )}
             <div ref={dialogueEndRef} />

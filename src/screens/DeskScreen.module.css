@@ -232,8 +232,7 @@
 }
 
 .repeatAlert { margin: 12px 24px 0; padding: 12px 14px; border: 1px solid rgba(196,92,38,.45); border-left: 4px solid #c45c26; border-radius: 10px; background: rgba(196,92,38,.08); }.repeatAlert span { color: #a64b25; font-size: .75rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }.repeatAlert p { margin: 5px 0 8px; color: var(--ink, #1a1a1a); }.repeatAlert button { border: 1px solid #c45c26; border-radius: 999px; padding: 6px 10px; background: transparent; color: #a64b25; cursor: pointer; }
-.catRun { position: fixed; z-index: 20; left: -80px; bottom: 24%; font-size: 3rem; filter: drop-shadow(0 7px 3px rgba(45,33,25,.28)); animation: catAcross 3.8s linear both; pointer-events: none; }
-@keyframes catAcross { from { left: -80px; transform: scaleX(1); } 48% { transform: scaleX(1) translateY(-12px); } 50% { transform: scaleX(-1) translateY(-12px); } to { left: calc(100% + 80px); transform: scaleX(-1); } }
+.noiseNotice { align-self: flex-start; max-width: min(430px, 90%); padding: 10px 12px; border: 1px dashed rgba(196,92,38,.55); border-radius: 10px; background: rgba(196,92,38,.07); }.noiseNotice span { color: #a64b25; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }.noiseNotice p { margin: 5px 0 8px; font-family: "IBM Plex Mono", monospace; }.noiseNotice button { border: 1px solid #c45c26; border-radius: 999px; padding: 6px 10px; background: transparent; color: #a64b25; cursor: pointer; }
 
 .escalateBtn {
   padding: 12px 24px;
@@ -744,6 +743,7 @@
     order: 2;
     flex: 0 0 auto;
     min-height: 72dvh;
+    overflow: visible;
   }
 
   .tools {
@@ -766,9 +766,10 @@
   .channelHeader p { font-size: 1rem; }
   .escalateBtn { width: 100%; min-height: 44px; }
   .dialogue { padding: 14px; gap: 12px; }
+  .dialogue { flex: 0 0 auto; max-height: 48dvh; }
   .message { max-width: 94%; padding: 13px 15px; }
   .message p { font-size: 1rem; line-height: 1.45; }
-  .options { max-height: 45%; padding: 14px; }
+  .options { max-height: none; overflow: visible; padding: 14px; }
   .option { padding: 14px; min-height: 44px; }
   .tabs { gap: 6px; }
   .tabs button { min-height: 44px; padding: 8px 6px; font-size: .82rem; }
@@ -787,6 +788,12 @@
   .dialogue { min-height: 260px; }
   .llmPanel { padding: 10px; }
   .composer textarea { min-height: 90px; }
+}
+
+@media (min-width: 901px) {
+  .channel { overflow-y: auto; }
+  .dialogue { flex: 0 0 auto; max-height: 46vh; }
+  .options { max-height: none; overflow: visible; }
 }
 
 .cta:disabled {

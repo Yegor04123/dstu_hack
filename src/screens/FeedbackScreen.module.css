@@ -9,7 +9,7 @@
 .grid strong { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; }
 .good { color: var(--ok); } .bad { color: var(--hot); }
 .lesson { margin: 0; padding: 16px; border-radius: 12px; background: var(--teal-soft); }
-.cta { align-self: flex-end; border: 0; border-radius: 999px; padding: 12px 28px; color: white; background: var(--teal); cursor: pointer; }
+.cta { align-self: stretch; border: 0; border-radius: 999px; padding: 14px 28px; color: white; background: var(--teal); cursor: pointer; font-size: 1rem; font-weight: 700; }
 .afterCall { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
 .afterCall h2 { margin: 0; font-size: 1rem; }
 .afterCall select, .afterCall textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--surface); color: var(--ink); font: inherit; }

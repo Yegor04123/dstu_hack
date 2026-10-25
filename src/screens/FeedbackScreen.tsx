@@ -37,7 +37,7 @@ export function FeedbackScreen({ clientName, temperature, csatDelta, escalated, 
           </select>
           <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Короткая заметка для следующего оператора" rows={3} />
         </section>
-        <button className={styles.cta} onClick={() => onContinue(`${category}; риск: ${risk}; заметка: ${note || "без дополнительной заметки"}`)}>Следующий входящий</button>
+        <button className={styles.cta} onClick={() => onContinue(`${category}; риск: ${risk}; заметка: ${note || "без дополнительной заметки"}`)}>Продолжить смену →</button>
       </main>
     </div>
   );
