@@ -45,10 +45,10 @@
 }
 
 @media (max-width: 800px) {
-  .eventCard { left: 4%; bottom: 4%; width: min(260px, 54vw); }
+  .eventCard { left: 4%; bottom: 24%; width: min(240px, 46vw); }
 }
 
 @media (max-width: 520px) {
-  .eventCard { left: 4%; bottom: 3%; width: 58vw; padding: 10px; }
+  .eventCard { left: 4%; bottom: 25%; width: 48vw; padding: 10px; }
   .eventCard p { font-size: .72rem; }
 }
